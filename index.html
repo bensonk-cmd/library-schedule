@@ -42,8 +42,8 @@
             </div>
             <div class="flex items-center space-x-3 w-full md:w-auto justify-end">
                 <div id="cloudStatusBadge" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-800 text-indigo-200 border border-indigo-700">
-                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block" id="cloudDot"></span>
-                    <span id="cloudStatusText">Connecting Cloud...</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block" id="cloudDot"></span>
+                    <span id="cloudStatusText">Local Storage Active</span>
                 </div>
                 <button onclick="openClassModal()" class="bg-indigo-700 hover:bg-indigo-600 text-white font-semibold px-3.5 py-2 rounded-lg text-sm shadow transition flex items-center gap-1.5">
                     <i class="fa-solid fa-plus-circle"></i> Add Class Slot
@@ -622,7 +622,7 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'k5-library-tracker';
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
-            : { apiKey: "demo-key", authDomain: "demo.firebaseapp.com", projectId: "demo-project" };
+            : null;
 
         let db = null;
         let auth = null;
@@ -703,6 +703,14 @@
         window.builderViewMode = 'matrix';
 
         async function initCloudSync() {
+            const isConfigPresent = firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey !== "demo-key";
+            
+            if (!isConfigPresent) {
+                updateCloudStatus('offline', 'Local Storage Active');
+                loadFromLocalStorage();
+                return;
+            }
+
             updateCloudStatus('syncing', 'Connecting Cloud...');
             try {
                 const app = initializeApp(firebaseConfig);
@@ -733,7 +741,7 @@
             if (dot) {
                 if (state === 'online') dot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
                 else if (state === 'syncing') dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block";
-                else dot.className = "w-2 h-2 rounded-full bg-slate-400 inline-block";
+                else dot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
             }
         }
 
@@ -744,12 +752,11 @@
             const scheduleCol = collection(db, 'artifacts', appId, 'public', 'data', 'schedules');
             onSnapshot(scheduleCol, (snapshot) => {
                 if (!snapshot.empty) {
-                    const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                    window.scheduleData = docs;
+                    window.scheduleData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                 } else {
-                    // Seed initial defaults if collection is empty
                     DEFAULT_SCHEDULE.forEach(item => saveScheduleItemCloud(item));
                 }
+                saveToLocalStorage();
                 renderMasterSchedule();
                 renderScheduleBuilder();
             }, (err) => console.error("Schedule sync error:", err));
@@ -762,6 +769,7 @@
                 } else {
                     INITIAL_COVERAGE.forEach(item => saveCoverageItemCloud(item));
                 }
+                saveToLocalStorage();
                 renderCoverageLog();
                 renderAnalytics();
                 renderMasterSchedule();
@@ -775,6 +783,7 @@
                     const data = snapshot.data();
                     if (data.weeks) window.schoolWeeks = data.weeks;
                     if (data.selectedWeekId) window.selectedWeekId = data.selectedWeekId;
+                    saveToLocalStorage();
                     populateWeekSelector();
                     updateActiveWeekState();
                     renderMasterSchedule();
@@ -786,10 +795,15 @@
         }
 
         async function saveScheduleItemCloud(item) {
-            if (!currentUser || !db) {
-                saveToLocalStorage();
-                return;
+            const index = window.scheduleData.findIndex(s => String(s.id) === String(item.id));
+            if (index !== -1) {
+                window.scheduleData[index] = item;
+            } else {
+                window.scheduleData.push(item);
             }
+            saveToLocalStorage();
+
+            if (!currentUser || !db) return;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'schedules', String(item.id));
                 await setDoc(docRef, item, { merge: true });
@@ -799,13 +813,12 @@
         }
 
         async function deleteScheduleItemCloud(id) {
-            if (!currentUser || !db) {
-                window.scheduleData = window.scheduleData.filter(s => String(s.id) !== String(id));
-                saveToLocalStorage();
-                renderMasterSchedule();
-                renderScheduleBuilder();
-                return;
-            }
+            window.scheduleData = window.scheduleData.filter(s => String(s.id) !== String(id));
+            saveToLocalStorage();
+            renderMasterSchedule();
+            renderScheduleBuilder();
+
+            if (!currentUser || !db) return;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'schedules', String(id));
                 await deleteDoc(docRef);
@@ -815,10 +828,19 @@
         }
 
         async function saveCoverageItemCloud(item) {
-            if (!currentUser || !db) {
-                saveToLocalStorage();
-                return;
+            const index = window.coverageData.findIndex(c => String(c.id) === String(item.id));
+            if (index !== -1) {
+                window.coverageData[index] = item;
+            } else {
+                window.coverageData.push(item);
             }
+            saveToLocalStorage();
+            renderCoverageLog();
+            renderAnalytics();
+            renderMasterSchedule();
+            updatePendingBadge();
+
+            if (!currentUser || !db) return;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'coverage', String(item.id));
                 await setDoc(docRef, item, { merge: true });
@@ -828,15 +850,14 @@
         }
 
         async function deleteCoverageItemCloud(id) {
-            if (!currentUser || !db) {
-                window.coverageData = window.coverageData.filter(c => String(c.id) !== String(id));
-                saveToLocalStorage();
-                renderCoverageLog();
-                renderAnalytics();
-                renderMasterSchedule();
-                updatePendingBadge();
-                return;
-            }
+            window.coverageData = window.coverageData.filter(c => String(c.id) !== String(id));
+            saveToLocalStorage();
+            renderCoverageLog();
+            renderAnalytics();
+            renderMasterSchedule();
+            updatePendingBadge();
+
+            if (!currentUser || !db) return;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'coverage', String(id));
                 await deleteDoc(docRef);
@@ -846,10 +867,9 @@
         }
 
         async function saveWeeksConfigCloud() {
-            if (!currentUser || !db) {
-                saveToLocalStorage();
-                return;
-            }
+            saveToLocalStorage();
+
+            if (!currentUser || !db) return;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'weeks');
                 await setDoc(docRef, {
@@ -862,10 +882,18 @@
         }
 
         function loadFromLocalStorage() {
-            window.scheduleData = JSON.parse(localStorage.getItem('dl_lib_schedule_v3')) || DEFAULT_SCHEDULE;
-            window.coverageData = JSON.parse(localStorage.getItem('dl_lib_coverage_v3')) || INITIAL_COVERAGE;
-            window.schoolWeeks = JSON.parse(localStorage.getItem('dl_lib_school_weeks_v3')) || generateSchoolYearWeeks();
-            window.selectedWeekId = localStorage.getItem('dl_lib_selected_week_v3') || window.schoolWeeks[0]?.id || 'W1';
+            const localSched = localStorage.getItem('dl_lib_schedule_v3');
+            window.scheduleData = localSched ? JSON.parse(localSched) : DEFAULT_SCHEDULE;
+
+            const localCov = localStorage.getItem('dl_lib_coverage_v3');
+            window.coverageData = localCov ? JSON.parse(localCov) : INITIAL_COVERAGE;
+
+            const localWeeks = localStorage.getItem('dl_lib_school_weeks_v3');
+            window.schoolWeeks = localWeeks ? JSON.parse(localWeeks) : generateSchoolYearWeeks();
+
+            const localSelectedWeek = localStorage.getItem('dl_lib_selected_week_v3');
+            window.selectedWeekId = localSelectedWeek || window.schoolWeeks[0]?.id || 'W1';
+
             populateWeekSelector();
             updateActiveWeekState();
             renderMasterSchedule();
@@ -1391,7 +1419,7 @@
             renderMasterSchedule();
             renderScheduleBuilder();
             window.closeClassModal();
-            showToast('Class slot saved to cloud');
+            showToast('Class slot saved');
         };
 
         window.deleteClassSlot = function(id) {
@@ -1400,7 +1428,13 @@
         };
 
         window.resetDefaultSchedule = function() {
-            DEFAULT_SCHEDULE.forEach(item => saveScheduleItemCloud(item));
+            window.scheduleData = [...DEFAULT_SCHEDULE];
+            saveToLocalStorage();
+            DEFAULT_SCHEDULE.forEach(item => {
+                if (currentUser && db) saveScheduleItemCloud(item);
+            });
+            renderMasterSchedule();
+            renderScheduleBuilder();
             showToast('Reset class schedule slots to default template');
         };
 
