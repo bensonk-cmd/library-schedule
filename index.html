@@ -618,11 +618,24 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // App & Cloud Storage Config Initialization
+        // App Identifier
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'k5-library-tracker';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+
+        // =========================================================================
+        // FIREBASE CONFIGURATION PLACEHOLDER
+        // Replace the default credentials below with your project values from the
+        // Firebase Console (Project Settings > General > Your Apps > Web app).
+        // =========================================================================
+        const firebaseConfig = (typeof __firebase_config !== 'undefined' && __firebase_config) 
             ? JSON.parse(__firebase_config) 
-            : null;
+            : {
+                apiKey: "YOUR_API_KEY_HERE",
+                authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+                projectId: "YOUR_PROJECT_ID",
+                storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
+                messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+                appId: "YOUR_APP_ID"
+            };
 
         let db = null;
         let auth = null;
@@ -703,7 +716,10 @@
         window.builderViewMode = 'matrix';
 
         async function initCloudSync() {
-            const isConfigPresent = firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey !== "demo-key";
+            const isConfigPresent = firebaseConfig && 
+                firebaseConfig.apiKey && 
+                firebaseConfig.apiKey !== "demo-key" && 
+                !firebaseConfig.apiKey.includes("YOUR_API_KEY");
             
             if (!isConfigPresent) {
                 updateCloudStatus('offline', 'Local Storage Active');
