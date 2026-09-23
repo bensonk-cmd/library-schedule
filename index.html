@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Literacy & Library Schedule & Para Coverage Tracker</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tab-active { border-bottom: 3px solid #4f46e5; color: #4f46e5; font-weight: 600; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-indigo-900 text-white shadow-md no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-indigo-700 rounded-lg text-indigo-200">
+                    <i class="fa-solid me-1 fa-book-open-reader text-2xl"></i>
+                    <i class="fa-solid fa-laptop-code text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">K-5 Digital Literacy & Library Hub</h1>
+                    <p class="text-xs text-indigo-200">Shared Class Schedule & Paraprofessional Coverage Portal</p>
+                    <div class="mt-1 text-xs text-indigo-200/90 font-medium flex items-center gap-2 flex-wrap">
+                        <span class="bg-indigo-950 px-2 py-0.5 rounded border border-indigo-700">Person 1: CS K, CS G3, All G1, G2</span>
+                        <span class="bg-indigo-950 px-2 py-0.5 rounded border border-indigo-700">Person 2: WS GK, WS G3, FS G4-G5</span>
+                        <span class="bg-emerald-900/90 text-emerald-200 px-2 py-0.5 rounded border border-emerald-700 font-semibold"><i class="fa-solid fa-users text-xs mr-1"></i>Simultaneous Schedules Active</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3 w-full md:w-auto justify-end">
+                <div id="cloudStatusBadge" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-800 text-indigo-200 border border-indigo-700">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block" id="cloudDot"></span>
+                    <span id="cloudStatusText">Connecting Cloud...</span>
+                </div>
+                <button onclick="openClassModal()" class="bg-indigo-700 hover:bg-indigo-600 text-white font-semibold px-3.5 py-2 rounded-lg text-sm shadow transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus-circle"></i> Add Class Slot
+                </button>
+                <button onclick="openParaModal()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold px-4 py-2 rounded-lg text-sm shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-user-shield"></i> Log Para Need
+                </button>
+                <button onclick="window.print()" class="bg-indigo-800 hover:bg-indigo-700 text-indigo-100 px-3 py-2 rounded-lg text-sm transition" title="Print Master View">
+                    <i class="fa-solid fa-print"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sub-Header Status Banner -->
+    <section class="bg-indigo-800 text-indigo-100 border-t border-indigo-700 px-4 py-2.5 no-print">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center text-xs sm:text-sm gap-2">
+            <div class="flex items-center space-x-3 flex-wrap gap-y-2">
+                <span class="flex items-center gap-1.5 font-medium">
+                    <i class="fa-solid fa-calendar-week text-amber-400"></i> Active School Week:
+                    <select id="weekSelector" onchange="handleWeekChange()" class="bg-indigo-950 text-white font-semibold rounded px-2.5 py-1 border border-indigo-600 focus:outline-none focus:ring-1 focus:ring-amber-400 text-xs sm:text-sm">
+                        <!-- Populated dynamically -->
+                    </select>
+                </span>
+                <div id="rotationBadgeDisplay" class="bg-indigo-950 text-white font-medium px-2.5 py-1 rounded border border-indigo-700 text-xs shadow-2xs flex items-center gap-1">
+                    <!-- Populated dynamically -->
+                </div>
+                <button onclick="jumpToCurrentWeek()" class="bg-indigo-700 hover:bg-indigo-600 text-indigo-100 px-2.5 py-1 rounded text-xs border border-indigo-500 transition flex items-center gap-1" title="Jump to Current Calendar Week">
+                    <i class="fa-solid fa-crosshairs text-amber-400"></i> Current Week
+                </button>
+            </div>
+            <div class="flex items-center space-x-4 text-xs">
+                <span class="bg-indigo-950 px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-indigo-700">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+                    2026–2027 School Year (Sept–June)
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Navigation Tabs -->
+    <nav class="bg-white border-b border-slate-200 shadow-sm no-print sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-8 overflow-x-auto">
+                <button onclick="switchTab('master')" id="tab-master" class="tab-active py-3.5 px-1 text-sm font-medium whitespace-nowrap flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-days"></i> Master Schedule <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border">Front Office</span>
+                </button>
+                <button onclick="switchTab('coverage')" id="tab-coverage" class="py-3.5 px-1 text-sm font-medium text-slate-500 hover:text-indigo-600 whitespace-nowrap flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-user"></i> Para Coverage Log <span id="pendingBadge" class="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full border border-amber-200">0</span>
+                </button>
+                <button onclick="switchTab('analytics')" id="tab-analytics" class="py-3.5 px-1 text-sm font-medium text-slate-500 hover:text-indigo-600 whitespace-nowrap flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie"></i> Principal Dashboard <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border">Reports</span>
+                </button>
+                <button onclick="switchTab('rotations')" id="tab-rotations" class="py-3.5 px-1 text-sm font-medium text-slate-500 hover:text-indigo-600 whitespace-nowrap flex items-center gap-2">
+                    <i class="fa-solid fa-sliders"></i> Person 1 & 2 Schedule Builder
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+        <!-- TAB 1: MASTER SCHEDULE (FRONT OFFICE VIEW) -->
+        <div id="view-master" class="space-y-6">
+            <!-- Filter & Search Bar -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-4 justify-between items-center no-print">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Schedule View</label>
+                        <select id="filterPersonOwner" onchange="renderMasterSchedule()" class="text-sm font-medium border border-indigo-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-indigo-500 bg-indigo-50/50 text-indigo-900">
+                            <option value="ALL">Both Teachers - Simultaneous View (Person 1 & Person 2)</option>
+                            <option value="Person 1">Person 1 Schedule Only</option>
+                            <option value="Person 2">Person 2 Schedule Only</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Filter Grade</label>
+                        <select id="filterGrade" onchange="renderMasterSchedule()" class="text-sm border border-slate-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-indigo-500">
+                            <option value="ALL">All Grades (K-5)</option>
+                            <option value="K">Kindergarten</option>
+                            <option value="1">1st Grade</option>
+                            <option value="2">2nd Grade</option>
+                            <option value="3">3rd Grade</option>
+                            <option value="4">4th Grade</option>
+                            <option value="5">5th Grade</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Filter Subject</label>
+                        <select id="filterTeacher" onchange="renderMasterSchedule()" class="text-sm border border-slate-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-indigo-500">
+                            <option value="ALL">All Subjects</option>
+                            <option value="Digital Literacy">Digital Literacy</option>
+                            <option value="Library">Library</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 text-xs font-medium text-slate-600 flex-wrap">
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-indigo-100 border border-indigo-400 rounded"></span> Digital Literacy</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-emerald-100 border border-emerald-400 rounded"></span> Library Media</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-amber-200 border border-amber-500 rounded"></span> Para Covered</span>
+                </div>
+            </div>
+
+            <!-- Print Header -->
+            <div class="hidden print-only mb-4 border-b pb-2">
+                <h2 class="text-2xl font-bold">Front Office Master Schedule - Digital Literacy & Library</h2>
+                <p class="text-sm text-slate-600" id="printSubheader">Week Rotation Active</p>
+            </div>
+
+            <!-- Schedule Grid Container -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 text-xs uppercase tracking-wider border-b border-slate-200">
+                                <th class="p-3 w-32 font-bold border-r">Time Slot</th>
+                                <th class="p-3 font-bold border-r w-1/5">Monday</th>
+                                <th class="p-3 font-bold border-r w-1/5">Tuesday</th>
+                                <th class="p-3 font-bold border-r w-1/5">Wednesday</th>
+                                <th class="p-3 font-bold border-r w-1/5">Thursday</th>
+                                <th class="p-3 font-bold w-1/5">Friday</th>
+                            </tr>
+                        </thead>
+                        <tbody id="masterScheduleBody" class="divide-y divide-slate-200 text-sm">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: PARA COVERAGE LOG -->
+        <div id="view-coverage" class="space-y-6 hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800">Paraprofessional Coverage Log</h2>
+                    <p class="text-xs text-slate-500">Track and review class coverage for meetings, IEPs, conferences, and staff absences.</p>
+                </div>
+                <button onclick="openParaModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg text-sm shadow-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> New Coverage Record
+                </button>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-4 items-center justify-between no-print">
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Reason Filter</label>
+                        <select id="coverageReasonFilter" onchange="renderCoverageLog()" class="text-sm border border-slate-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-indigo-500">
+                            <option value="ALL">All Reasons</option>
+                            <option value="Meeting">Meeting</option>
+                            <option value="Conference">Conference</option>
+                            <option value="Frontline Absence">Frontline Absence</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Teacher</label>
+                        <select id="coverageTeacherFilter" onchange="renderCoverageLog()" class="text-sm border border-slate-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-indigo-500">
+                            <option value="ALL">Both Teachers</option>
+                            <option value="Digital Literacy Teacher">Digital Literacy Teacher</option>
+                            <option value="Library Teacher">Library Teacher</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-500 font-medium">
+                    Showing <span id="coverageRecordCount" class="font-bold text-slate-800">0</span> records
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 text-xs uppercase tracking-wider border-b border-slate-200">
+                                <th class="p-3 font-bold">Date & Time</th>
+                                <th class="p-3 font-bold">Class / Grade</th>
+                                <th class="p-3 font-bold">Regular Teacher</th>
+                                <th class="p-3 font-bold">Reason for Para</th>
+                                <th class="p-3 font-bold">Assigned Para</th>
+                                <th class="p-3 font-bold">Status</th>
+                                <th class="p-3 font-bold text-right no-print">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coverageLogBody" class="divide-y divide-slate-200 text-sm">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: PRINCIPAL DASHBOARD -->
+        <div id="view-analytics" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Para Sessions</span>
+                        <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-800" id="statTotalSessions">0</div>
+                    <p class="text-xs text-slate-500 mt-1">30-minute class blocks covered</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Para Hours</span>
+                        <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><i class="fa-solid fa-hourglass-half"></i></div>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-800" id="statTotalHours">0 hrs</div>
+                    <p class="text-xs text-slate-500 mt-1">Cumulative coverage time</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Top Reason</span>
+                        <div class="p-2 bg-amber-50 text-amber-600 rounded-lg"><i class="fa-solid fa-clipboard-question"></i></div>
+                    </div>
+                    <div class="text-lg font-bold text-slate-800 truncate" id="statTopReason">IEP Meetings</div>
+                    <p class="text-xs text-slate-500 mt-1">Primary driver of coverage</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Most Impacted Grade</span>
+                        <div class="p-2 bg-purple-50 text-purple-600 rounded-lg"><i class="fa-solid fa-graduation-cap"></i></div>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-800" id="statTopGrade">Grade 2</div>
+                    <p class="text-xs text-slate-500 mt-1">Highest frequency of requests</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-pie-chart text-indigo-600"></i> Coverage Drivers
+                    </h3>
+                    <div id="reasonBreakdownList" class="space-y-3 text-xs sm:text-sm"></div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-emerald-600"></i> Coverage Distribution by Grade Level
+                    </h3>
+                    <div id="gradeBreakdownList" class="space-y-3 text-xs sm:text-sm"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: PERSON 1 & PERSON 2 SCHEDULE BUILDER & ROTATIONS -->
+        <div id="view-rotations" class="space-y-6 hidden">
+            
+            <!-- SECTION 1: PERSON 1 & PERSON 2 CLASS SCHEDULE INPUT EDITOR -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-5">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 bg-indigo-100 text-indigo-800 rounded-lg font-bold"><i class="fa-solid fa-calendar-plus"></i></span>
+                            <h2 class="text-lg font-bold text-slate-800">Person 1 & Person 2 Simultaneous Schedule Builder</h2>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Both Person 1 and Person 2 teach during the same time slots simultaneously. Use the matrix or list below to enter classes for all available time slots (8:15am–2:20pm) across the school year.</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button onclick="openClassModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg text-xs sm:text-sm shadow-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Add New Class Slot
+                        </button>
+                        <button onclick="resetDefaultSchedule()" class="text-xs text-slate-600 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200 border px-3 py-2 rounded-lg font-semibold transition flex items-center gap-1">
+                            <i class="fa-solid fa-rotate-left"></i> Load Simultaneous Preset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Schedule View Mode & Owner Filter Bar -->
+                <div class="flex justify-between items-center flex-wrap gap-3">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <!-- Mode Toggle -->
+                        <div class="inline-flex p-1 bg-slate-100 rounded-lg text-xs font-semibold text-slate-600">
+                            <button onclick="setBuilderViewMode('matrix')" id="btn-mode-matrix" class="px-3 py-1.5 rounded-md bg-white shadow-xs text-indigo-700 font-bold"><i class="fa-solid fa-table-cells mr-1"></i> Simultaneous Matrix View</button>
+                            <button onclick="setBuilderViewMode('list')" id="btn-mode-list" class="px-3 py-1.5 rounded-md hover:text-slate-900 font-normal"><i class="fa-solid fa-list mr-1"></i> List View</button>
+                        </div>
+                        <!-- Owner Filter -->
+                        <div class="inline-flex p-1 bg-slate-100 rounded-lg text-xs font-semibold text-slate-600">
+                            <button onclick="filterBuilderList('ALL')" id="btn-builder-all" class="px-3 py-1.5 rounded-md bg-white shadow-xs text-indigo-700 font-bold">Both Schedules</button>
+                            <button onclick="filterBuilderList('Person 1')" id="btn-builder-p1" class="px-3 py-1.5 rounded-md hover:text-slate-900 font-normal">Person 1 Only</button>
+                            <button onclick="filterBuilderList('Person 2')" id="btn-builder-p2" class="px-3 py-1.5 rounded-md hover:text-slate-900 font-normal">Person 2 Only</button>
+                        </div>
+                    </div>
+                    <span class="text-xs text-slate-500 font-medium">Total Active Class Slots: <strong id="builderCountDisplay" class="text-slate-800">0</strong></span>
+                </div>
+
+                <!-- Container 1: Matrix View (Simultaneous Grid) -->
+                <div id="builderMatrixContainer" class="overflow-x-auto border rounded-xl">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 uppercase tracking-wider border-b">
+                                <th class="p-2.5 w-28 font-bold border-r">Time Slot</th>
+                                <th class="p-2.5 font-bold border-r w-1/5">Monday</th>
+                                <th class="p-2.5 font-bold border-r w-1/5">Tuesday</th>
+                                <th class="p-2.5 font-bold border-r w-1/5">Wednesday</th>
+                                <th class="p-2.5 font-bold border-r w-1/5">Thursday</th>
+                                <th class="p-2.5 font-bold w-1/5">Friday</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleBuilderMatrixBody" class="divide-y divide-slate-200">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Container 2: Input Class Schedule Table (List View) -->
+                <div id="builderListContainer" class="overflow-x-auto border rounded-xl hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider border-b">
+                                <th class="p-3 font-bold">Schedule Owner</th>
+                                <th class="p-3 font-bold">Day & Time Slot</th>
+                                <th class="p-3 font-bold">Grade & Class Code</th>
+                                <th class="p-3 font-bold">Rotation A Subject</th>
+                                <th class="p-3 font-bold">Rotation B Subject</th>
+                                <th class="p-3 font-bold text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleBuilderBody" class="divide-y divide-slate-200">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECTION 2: SCHOOL YEAR CALENDAR ROTATION SEQUENCE -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+                <div class="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
+                    <div>
+                        <h3 class="font-bold text-slate-800">2026–2027 School Year Rotation Sequence (Sept 2026 – June 2027)</h3>
+                        <p class="text-xs text-slate-500">Person 1 and Person 2 teach simultaneously every week. Use this table to review and toggle weekly subject assignments across all weeks of the school year.</p>
+                    </div>
+                    <button onclick="resetCalendarRotations()" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-left"></i> Reset Alternating Sequence
+                    </button>
+                </div>
+                <div class="overflow-x-auto max-h-80 border rounded-xl">
+                    <table class="w-full text-left text-sm">
+                        <thead class="sticky top-0 bg-slate-100 shadow-2xs">
+                            <tr class="border-b text-xs uppercase text-slate-600">
+                                <th class="p-3">Week #</th>
+                                <th class="p-3">Date Range (Mon - Fri)</th>
+                                <th class="p-3">Person 1 Subject Role</th>
+                                <th class="p-3">Person 2 Subject Role</th>
+                                <th class="p-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="schoolCalendarBody" class="divide-y divide-slate-200">
+                            <!-- Dynamically generated 2026-2027 school weeks -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- MODAL 1: ADD/EDIT CLASS SCHEDULE SLOT -->
+    <div id="classModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-5">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div class="flex items-center gap-2 text-indigo-900">
+                    <i class="fa-solid fa-calendar-plus text-indigo-600 text-xl"></i>
+                    <h3 class="font-bold text-lg" id="classModalTitle">Add Class Schedule Slot</h3>
+                </div>
+                <button onclick="closeClassModal()" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="classForm" onsubmit="handleClassSubmit(event)" class="space-y-4 text-xs sm:text-sm">
+                <input type="hidden" id="modalClassId">
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Assign to Schedule Owner</label>
+                    <select id="modalOwner" required class="w-full border border-indigo-300 bg-indigo-50/50 rounded-lg p-2.5 font-semibold text-indigo-900 focus:ring-2 focus:ring-indigo-500">
+                        <option value="Person 1">Person 1 Schedule (CS K, CS G3, All G1, G2)</option>
+                        <option value="Person 2">Person 2 Schedule (WS GK, WS G3, FS G4-G5)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Day of Week</label>
+                        <select id="modalDay" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Time Slot</label>
+                        <select id="modalTimeSlot" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                            <option value="8:15am - 8:45am">8:15am - 8:45am</option>
+                            <option value="8:50am - 9:20am">8:50am - 9:20am</option>
+                            <option value="9:20am - 9:50am">9:20am - 9:50am</option>
+                            <option value="9:30am - 10:00am">9:30am - 10:00am</option>
+                            <option value="9:55am - 10:25am">9:55am - 10:25am</option>
+                            <option value="10:00am - 10:30am">10:00am - 10:30am</option>
+                            <option value="10:05am - 10:35am">10:05am - 10:35am</option>
+                            <option value="10:30am - 11:00am">10:30am - 11:00am</option>
+                            <option value="10:40am - 11:10am">10:40am - 11:10am</option>
+                            <option value="11:00am - 11:30am">11:00am - 11:30am</option>
+                            <option value="11:10am - 11:40am">11:10am - 11:40am</option>
+                            <option value="11:15am - 11:45am">11:15am - 11:45am</option>
+                            <option value="11:30am - 12:00pm">11:30am - 12:00pm</option>
+                            <option value="11:40am - 12:10pm">11:40am - 12:10pm</option>
+                            <option value="12:10pm - 12:40pm">12:10pm - 12:40pm</option>
+                            <option value="12:45pm - 1:15pm">12:45pm - 1:15pm</option>
+                            <option value="1:15pm - 2:20pm">1:15pm - 2:20pm</option>
+                            <option value="1:50pm - 2:20pm">1:50pm - 2:20pm</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Grade Level</label>
+                        <select id="modalGrade" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                            <option value="K">Kindergarten</option>
+                            <option value="1">1st Grade</option>
+                            <option value="2">2nd Grade</option>
+                            <option value="3">3rd Grade</option>
+                            <option value="4">4th Grade</option>
+                            <option value="5">5th Grade</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Class Code / Name</label>
+                        <input type="text" id="modalClassCode" required placeholder="e.g. CS K, WS G3, 1-A" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 border rounded-xl">
+                    <div>
+                        <label class="block font-semibold text-xs text-slate-600 mb-1">Subject (Rotation A)</label>
+                        <select id="modalWeekA" required class="w-full border border-slate-300 rounded-lg p-1.5 focus:ring-2 focus:ring-indigo-500">
+                            <option value="Digital Literacy">Digital Literacy</option>
+                            <option value="Library">Library</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-xs text-slate-600 mb-1">Subject (Rotation B)</label>
+                        <select id="modalWeekB" required class="w-full border border-slate-300 rounded-lg p-1.5 focus:ring-2 focus:ring-indigo-500">
+                            <option value="Library">Library</option>
+                            <option value="Digital Literacy">Digital Literacy</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-3 border-t">
+                    <button type="button" onclick="closeClassModal()" class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-100 font-medium">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow-sm">Save Class Slot</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: LOG PARA COVERAGE REQUEST -->
+    <div id="paraModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-5">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div class="flex items-center gap-2 text-indigo-900">
+                    <i class="fa-solid fa-user-shield text-amber-500 text-xl"></i>
+                    <h3 class="font-bold text-lg">Record Paraprofessional Need</h3>
+                </div>
+                <button onclick="closeParaModal()" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="paraForm" onsubmit="handleParaSubmit(event)" class="space-y-4 text-xs sm:text-sm">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Teacher Requesting</label>
+                        <select id="modalTeacher" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                            <option value="Digital Literacy Teacher">Digital Literacy Teacher</option>
+                            <option value="Library Teacher">Library Teacher</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Date Needed</label>
+                        <input type="date" id="modalDate" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Grade Level & Class</label>
+                        <select id="modalClass" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                            <option value="CS K (Kindergarten)">CS K (Kindergarten)</option>
+                            <option value="WS GK (Kindergarten)">WS GK (Kindergarten)</option>
+                            <option value="Grade 1 (1-A)">Grade 1 (1-A)</option>
+                            <option value="Grade 2 (2-B)">Grade 2 (2-B)</option>
+                            <option value="CS G3 (3rd Grade)">CS G3 (3rd Grade)</option>
+                            <option value="WS G3 (3rd Grade)">WS G3 (3rd Grade)</option>
+                            <option value="FS G4-G5 (4th Grade)">FS G4-G5 (4th Grade)</option>
+                            <option value="FS G4-G5 (5th Grade)">FS G4-G5 (5th Grade)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Class Time Slot</label>
+                        <select id="modalTime" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                            <option value="8:15am - 8:45am">8:15am - 8:45am</option>
+                            <option value="8:50am - 9:20am">8:50am - 9:20am</option>
+                            <option value="9:20am - 9:50am">9:20am - 9:50am</option>
+                            <option value="9:30am - 10:00am">9:30am - 10:00am</option>
+                            <option value="9:55am - 10:25am">9:55am - 10:25am</option>
+                            <option value="10:00am - 10:30am">10:00am - 10:30am</option>
+                            <option value="10:05am - 10:35am">10:05am - 10:35am</option>
+                            <option value="10:30am - 11:00am">10:30am - 11:00am</option>
+                            <option value="10:40am - 11:10am">10:40am - 11:10am</option>
+                            <option value="11:00am - 11:30am">11:00am - 11:30am</option>
+                            <option value="11:10am - 11:40am">11:10am - 11:40am</option>
+                            <option value="11:15am - 11:45am">11:15am - 11:45am</option>
+                            <option value="11:30am - 12:00pm">11:30am - 12:00pm</option>
+                            <option value="11:40am - 12:10pm">11:40am - 12:10pm</option>
+                            <option value="12:10pm - 12:40pm">12:10pm - 12:40pm</option>
+                            <option value="12:45pm - 1:15pm">12:45pm - 1:15pm</option>
+                            <option value="1:15pm - 2:20pm">1:15pm - 2:20pm</option>
+                            <option value="1:50pm - 2:20pm">1:50pm - 2:20pm</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Reason for Coverage</label>
+                    <select id="modalReason" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                        <option value="Meeting">Meeting</option>
+                        <option value="Conference">Conference</option>
+                        <option value="Frontline Absence">Frontline Absence</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Assigned Paraprofessional</label>
+                        <input type="text" id="modalPara" placeholder="e.g. Mrs. Smith (Optional)" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Coverage Status</label>
+                        <select id="modalStatus" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                            <option value="Scheduled">Scheduled</option>
+                            <option value="Pending Para">Pending Para Assignment</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Reason Details & Notes</label>
+                    <textarea id="modalNotes" rows="2" placeholder="Input specific details on why coverage is needed..." class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-3 border-t">
+                    <button type="button" onclick="closeParaModal()" class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-100 font-medium">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow-sm">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 transition-opacity duration-300 opacity-0 pointer-events-none z-50 text-sm">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toastMsg">Action completed successfully.</span>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // App & Cloud Storage Config Initialization
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'k5-library-tracker';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : { apiKey: "demo-key", authDomain: "demo.firebaseapp.com", projectId: "demo-project" };
+
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+
+        const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
+        const TIME_SLOTS = [
+            "8:15am - 8:45am", "8:50am - 9:20am", "9:20am - 9:50am", "9:30am - 10:00am",
+            "9:55am - 10:25am", "10:00am - 10:30am", "10:05am - 10:35am", "10:30am - 11:00am",
+            "10:40am - 11:10am", "11:00am - 11:30am", "11:10am - 11:40am", "11:15am - 11:45am",
+            "11:30am - 12:00pm", "11:40am - 12:10pm", "12:10pm - 12:40pm", "12:45pm - 1:15pm",
+            "1:15pm - 2:20pm", "1:50pm - 2:20pm"
+        ];
+
+        // Simultaneous Preset Schedule Defaults
+        const DEFAULT_SCHEDULE = [
+            { id: '1', personOwner: "Person 1", time: "8:15am - 8:45am", day: "Monday", grade: "K", classCode: "CS K", weekA: "Digital Literacy", weekB: "Library" },
+            { id: '2', personOwner: "Person 2", time: "8:15am - 8:45am", day: "Monday", grade: "K", classCode: "WS GK", weekA: "Library", weekB: "Digital Literacy" },
+            { id: '3', personOwner: "Person 1", time: "8:50am - 9:20am", day: "Monday", grade: "1", classCode: "1-A", weekA: "Digital Literacy", weekB: "Library" },
+            { id: '4', personOwner: "Person 2", time: "8:50am - 9:20am", day: "Monday", grade: "4", classCode: "FS G4-A", weekA: "Library", weekB: "Digital Literacy" },
+            { id: '5', personOwner: "Person 1", time: "9:20am - 9:50am", day: "Tuesday", grade: "2", classCode: "2-B", weekA: "Digital Literacy", weekB: "Library" },
+            { id: '6', personOwner: "Person 2", time: "9:20am - 9:50am", day: "Tuesday", grade: "3", classCode: "WS G3", weekA: "Library", weekB: "Digital Literacy" },
+            { id: '7', personOwner: "Person 1", time: "10:05am - 10:35am", day: "Wednesday", grade: "3", classCode: "CS G3", weekA: "Digital Literacy", weekB: "Library" },
+            { id: '8', personOwner: "Person 2", time: "10:05am - 10:35am", day: "Wednesday", grade: "5", classCode: "FS G5-A", weekA: "Library", weekB: "Digital Literacy" },
+            { id: '9', personOwner: "Person 1", time: "11:15am - 11:45am", day: "Thursday", grade: "1", classCode: "1-B", weekA: "Digital Literacy", weekB: "Library" },
+            { id: '10', personOwner: "Person 2", time: "11:15am - 11:45am", day: "Thursday", grade: "4", classCode: "FS G4-B", weekA: "Library", weekB: "Digital Literacy" },
+            { id: '11', personOwner: "Person 1", time: "1:15pm - 2:20pm", day: "Friday", grade: "2", classCode: "2-A", weekA: "Digital Literacy", weekB: "Library" },
+            { id: '12', personOwner: "Person 2", time: "1:15pm - 2:20pm", day: "Friday", grade: "5", classCode: "FS G5-B", weekA: "Library", weekB: "Digital Literacy" }
+        ];
+
+        const INITIAL_COVERAGE = [
+            { id: 'COV-101', date: '2026-09-14', time: '8:15am - 8:45am', teacher: 'Digital Literacy Teacher', classCode: 'CS K (Kindergarten)', grade: 'K', reason: 'Meeting', para: 'Mrs. Davis', status: 'Completed', notes: 'IEP annual review meeting' },
+            { id: 'COV-102', date: '2026-09-16', time: '10:05am - 10:35am', teacher: 'Library Teacher', classCode: 'CS G3 (3rd Grade)', grade: '3', reason: 'Conference', para: 'Mr. Wilson', status: 'Scheduled', notes: 'District curriculum planning' }
+        ];
+
+        function generateSchoolYearWeeks() {
+            const weeks = [];
+            let startDate = new Date(2026, 8, 7);
+            const endDateLimit = new Date(2027, 5, 25);
+            let weekCount = 1;
+            let currentRotation = 'A';
+
+            while (startDate <= endDateLimit) {
+                const friDate = new Date(startDate);
+                friDate.setDate(startDate.getDate() + 4);
+                const startStr = startDate.toISOString().split('T')[0];
+                const endStr = friDate.toISOString().split('T')[0];
+                const startFormatted = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const endFormatted = friDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                
+                weeks.push({
+                    id: `W${weekCount}`,
+                    weekNum: weekCount,
+                    start: startStr,
+                    end: endStr,
+                    label: `Week ${weekCount}: ${startFormatted} – ${endFormatted}`,
+                    shortLabel: `${startFormatted} – ${endFormatted}`,
+                    rotation: currentRotation,
+                    p1Subject: currentRotation === 'A' ? 'Digital Literacy' : 'Library',
+                    p2Subject: currentRotation === 'A' ? 'Library' : 'Digital Literacy'
+                });
+
+                currentRotation = currentRotation === 'A' ? 'B' : 'A';
+                startDate.setDate(startDate.getDate() + 7);
+                weekCount++;
+            }
+            return weeks;
+        }
+
+        // Global Application State Variables
+        window.scheduleData = DEFAULT_SCHEDULE;
+        window.coverageData = INITIAL_COVERAGE;
+        window.schoolWeeks = generateSchoolYearWeeks();
+        window.selectedWeekId = window.schoolWeeks[0]?.id || 'W1';
+        window.currentWeek = 'A';
+        window.currentBuilderFilter = 'ALL';
+        window.builderViewMode = 'matrix';
+
+        async function initCloudSync() {
+            updateCloudStatus('syncing', 'Connecting Cloud...');
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    const cred = await signInWithCustomToken(auth, __initial_auth_token);
+                    currentUser = cred.user;
+                } else {
+                    const cred = await signInAnonymously(auth);
+                    currentUser = cred.user;
+                }
+
+                updateCloudStatus('online', 'Cloud Sync Active');
+                setupRealtimeListeners();
+            } catch (err) {
+                console.warn("Cloud sync using fallback storage:", err);
+                updateCloudStatus('offline', 'Local Storage Active');
+                loadFromLocalStorage();
+            }
+        }
+
+        function updateCloudStatus(state, text) {
+            const txt = document.getElementById('cloudStatusText');
+            const dot = document.getElementById('cloudDot');
+            if (txt) txt.innerText = text;
+            if (dot) {
+                if (state === 'online') dot.className = "w-2 h-2 rounded-full bg-emerald-400 inline-block";
+                else if (state === 'syncing') dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block";
+                else dot.className = "w-2 h-2 rounded-full bg-slate-400 inline-block";
+            }
+        }
+
+        function setupRealtimeListeners() {
+            if (!currentUser || !db) return;
+
+            // Listen for Schedule Collection changes
+            const scheduleCol = collection(db, 'artifacts', appId, 'public', 'data', 'schedules');
+            onSnapshot(scheduleCol, (snapshot) => {
+                if (!snapshot.empty) {
+                    const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    window.scheduleData = docs;
+                } else {
+                    // Seed initial defaults if collection is empty
+                    DEFAULT_SCHEDULE.forEach(item => saveScheduleItemCloud(item));
+                }
+                renderMasterSchedule();
+                renderScheduleBuilder();
+            }, (err) => console.error("Schedule sync error:", err));
+
+            // Listen for Coverage Requests
+            const coverageCol = collection(db, 'artifacts', appId, 'public', 'data', 'coverage');
+            onSnapshot(coverageCol, (snapshot) => {
+                if (!snapshot.empty) {
+                    window.coverageData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                } else {
+                    INITIAL_COVERAGE.forEach(item => saveCoverageItemCloud(item));
+                }
+                renderCoverageLog();
+                renderAnalytics();
+                renderMasterSchedule();
+                updatePendingBadge();
+            }, (err) => console.error("Coverage sync error:", err));
+
+            // Listen for Config / Weeks
+            const weeksDoc = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'weeks');
+            onSnapshot(weeksDoc, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.data();
+                    if (data.weeks) window.schoolWeeks = data.weeks;
+                    if (data.selectedWeekId) window.selectedWeekId = data.selectedWeekId;
+                    populateWeekSelector();
+                    updateActiveWeekState();
+                    renderMasterSchedule();
+                    renderCalendarWeeksTable();
+                } else {
+                    saveWeeksConfigCloud();
+                }
+            }, (err) => console.error("Weeks config sync error:", err));
+        }
+
+        async function saveScheduleItemCloud(item) {
+            if (!currentUser || !db) {
+                saveToLocalStorage();
+                return;
+            }
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'schedules', String(item.id));
+                await setDoc(docRef, item, { merge: true });
+            } catch (err) {
+                console.error("Error saving schedule slot:", err);
+            }
+        }
+
+        async function deleteScheduleItemCloud(id) {
+            if (!currentUser || !db) {
+                window.scheduleData = window.scheduleData.filter(s => String(s.id) !== String(id));
+                saveToLocalStorage();
+                renderMasterSchedule();
+                renderScheduleBuilder();
+                return;
+            }
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'schedules', String(id));
+                await deleteDoc(docRef);
+            } catch (err) {
+                console.error("Error deleting schedule slot:", err);
+            }
+        }
+
+        async function saveCoverageItemCloud(item) {
+            if (!currentUser || !db) {
+                saveToLocalStorage();
+                return;
+            }
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'coverage', String(item.id));
+                await setDoc(docRef, item, { merge: true });
+            } catch (err) {
+                console.error("Error saving coverage log:", err);
+            }
+        }
+
+        async function deleteCoverageItemCloud(id) {
+            if (!currentUser || !db) {
+                window.coverageData = window.coverageData.filter(c => String(c.id) !== String(id));
+                saveToLocalStorage();
+                renderCoverageLog();
+                renderAnalytics();
+                renderMasterSchedule();
+                updatePendingBadge();
+                return;
+            }
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'coverage', String(id));
+                await deleteDoc(docRef);
+            } catch (err) {
+                console.error("Error deleting coverage record:", err);
+            }
+        }
+
+        async function saveWeeksConfigCloud() {
+            if (!currentUser || !db) {
+                saveToLocalStorage();
+                return;
+            }
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'weeks');
+                await setDoc(docRef, {
+                    weeks: window.schoolWeeks,
+                    selectedWeekId: window.selectedWeekId
+                });
+            } catch (err) {
+                console.error("Error saving weeks config:", err);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            window.scheduleData = JSON.parse(localStorage.getItem('dl_lib_schedule_v3')) || DEFAULT_SCHEDULE;
+            window.coverageData = JSON.parse(localStorage.getItem('dl_lib_coverage_v3')) || INITIAL_COVERAGE;
+            window.schoolWeeks = JSON.parse(localStorage.getItem('dl_lib_school_weeks_v3')) || generateSchoolYearWeeks();
+            window.selectedWeekId = localStorage.getItem('dl_lib_selected_week_v3') || window.schoolWeeks[0]?.id || 'W1';
+            populateWeekSelector();
+            updateActiveWeekState();
+            renderMasterSchedule();
+            renderCoverageLog();
+            renderAnalytics();
+            renderCalendarWeeksTable();
+            renderScheduleBuilder();
+            updatePendingBadge();
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('dl_lib_schedule_v3', JSON.stringify(window.scheduleData));
+            localStorage.setItem('dl_lib_coverage_v3', JSON.stringify(window.coverageData));
+            localStorage.setItem('dl_lib_school_weeks_v3', JSON.stringify(window.schoolWeeks));
+            localStorage.setItem('dl_lib_selected_week_v3', window.selectedWeekId);
+        }
+
+        // Attach Global Handlers to Window Context
+        window.switchTab = function(tabName) {
+            const tabs = ['master', 'coverage', 'analytics', 'rotations'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const view = document.getElementById(`view-${t}`);
+                if (btn) btn.className = (t === tabName) ? 'tab-active py-3.5 px-1 text-sm font-medium whitespace-nowrap flex items-center gap-2' : 'py-3.5 px-1 text-sm font-medium text-slate-500 hover:text-indigo-600 whitespace-nowrap flex items-center gap-2';
+                if (view) view.classList.toggle('hidden', t !== tabName);
+            });
+
+            if (tabName === 'master') renderMasterSchedule();
+            if (tabName === 'coverage') renderCoverageLog();
+            if (tabName === 'analytics') renderAnalytics();
+            if (tabName === 'rotations') {
+                renderScheduleBuilder();
+                renderCalendarWeeksTable();
+            }
+        };
+
+        window.populateWeekSelector = function() {
+            const selector = document.getElementById('weekSelector');
+            if (!selector) return;
+            selector.innerHTML = window.schoolWeeks.map(w => `<option value="${w.id}">${w.label}</option>`).join('');
+            selector.value = window.selectedWeekId;
+        };
+
+        window.handleWeekChange = function() {
+            const selector = document.getElementById('weekSelector');
+            if (selector) {
+                window.selectedWeekId = selector.value;
+                saveWeeksConfigCloud();
+                updateActiveWeekState();
+                renderMasterSchedule();
+                renderCalendarWeeksTable();
+            }
+        };
+
+        window.jumpToCurrentWeek = function() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const found = window.schoolWeeks.find(w => todayStr >= w.start && todayStr <= w.end);
+            window.selectedWeekId = found ? found.id : (window.schoolWeeks[0]?.id || 'W1');
+            const selector = document.getElementById('weekSelector');
+            if (selector) selector.value = window.selectedWeekId;
+            window.handleWeekChange();
+            showToast('Jumped to active week');
+        };
+
+        function updateActiveWeekState() {
+            const activeWeekObj = window.schoolWeeks.find(w => w.id === window.selectedWeekId) || window.schoolWeeks[0];
+            if (activeWeekObj) {
+                window.currentWeek = activeWeekObj.rotation;
+                const badge = document.getElementById('rotationBadgeDisplay');
+                if (badge) {
+                    badge.innerHTML = `<i class="fa-solid fa-arrows-rotate text-amber-400 mr-1"></i> Active: <strong class="text-amber-300 ml-1">${activeWeekObj.shortLabel} (Rotation ${activeWeekObj.rotation})</strong>`;
+                }
+            }
+        }
+
+        window.setBuilderViewMode = function(mode) {
+            window.builderViewMode = mode;
+            const btnMatrix = document.getElementById('btn-mode-matrix');
+            const btnList = document.getElementById('btn-mode-list');
+            const matrixCont = document.getElementById('builderMatrixContainer');
+            const listCont = document.getElementById('builderListContainer');
+
+            if (mode === 'matrix') {
+                if (btnMatrix) btnMatrix.className = 'px-3 py-1.5 rounded-md bg-white shadow-xs text-indigo-700 font-bold';
+                if (btnList) btnList.className = 'px-3 py-1.5 rounded-md hover:text-slate-900 font-normal';
+                if (matrixCont) matrixCont.classList.remove('hidden');
+                if (listCont) listCont.classList.add('hidden');
+            } else {
+                if (btnList) btnList.className = 'px-3 py-1.5 rounded-md bg-white shadow-xs text-indigo-700 font-bold';
+                if (btnMatrix) btnMatrix.className = 'px-3 py-1.5 rounded-md hover:text-slate-900 font-normal';
+                if (listCont) listCont.classList.remove('hidden');
+                if (matrixCont) matrixCont.classList.add('hidden');
+            }
+            renderScheduleBuilder();
+        };
+
+        function renderMasterSchedule() {
+            const tbody = document.getElementById('masterScheduleBody');
+            if (!tbody) return;
+            const personFilter = document.getElementById('filterPersonOwner')?.value || 'ALL';
+            const gradeFilter = document.getElementById('filterGrade')?.value || 'ALL';
+            const teacherFilter = document.getElementById('filterTeacher')?.value || 'ALL';
+            const activeWeekObj = window.schoolWeeks.find(w => w.id === window.selectedWeekId) || window.schoolWeeks[0];
+
+            const p1Sub = activeWeekObj.p1Subject || (window.currentWeek === 'A' ? 'Digital Literacy' : 'Library');
+            const p2Sub = activeWeekObj.p2Subject || (window.currentWeek === 'A' ? 'Library' : 'Digital Literacy');
+
+            const subheader = document.getElementById('printSubheader');
+            if (subheader) subheader.innerText = `Active Week: ${activeWeekObj.label} • Person 1: ${p1Sub} | Person 2: ${p2Sub}`;
+
+            let html = '';
+
+            TIME_SLOTS.forEach(time => {
+                html += `<tr>
+                    <td class="p-3 font-semibold text-xs text-slate-500 border-r bg-slate-50/50">${time}</td>`;
+
+                DAYS.forEach(day => {
+                    let matches = window.scheduleData.filter(s => s.time === time && s.day === day);
+                    if (personFilter !== 'ALL') matches = matches.filter(s => s.personOwner === personFilter);
+
+                    if (matches.length === 0) {
+                        html += `<td class="p-3 border-r bg-slate-50/20 text-slate-300 text-xs text-center">—</td>`;
+                    } else {
+                        html += `<td class="p-2 border-r">`;
+                        html += `<div class="grid grid-cols-1 ${matches.length > 1 && personFilter === 'ALL' ? 'xl:grid-cols-2' : ''} gap-1.5">`;
+
+                        matches.forEach(item => {
+                            const activeTeacher = item.personOwner === 'Person 1' ? p1Sub : p2Sub;
+                            if (gradeFilter !== 'ALL' && item.grade !== gradeFilter) return;
+                            if (teacherFilter !== 'ALL' && activeTeacher !== teacherFilter) return;
+
+                            const hasPara = window.coverageData.some(c => c.time === item.time && c.classCode.includes(item.classCode));
+                            const isDL = activeTeacher === 'Digital Literacy';
+                            
+                            const badgeStyle = isDL ? 'bg-indigo-50 text-indigo-800 border-indigo-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200';
+                            const ownerTagStyle = item.personOwner === 'Person 1' ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-purple-100 text-purple-900 border-purple-300';
+
+                            html += `
+                                <div class="p-2 rounded-lg border ${badgeStyle} relative group shadow-2xs">
+                                    <div class="flex justify-between items-start gap-1">
+                                        <span class="font-bold text-xs">${item.classCode} (Gr. ${item.grade})</span>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.2 rounded border ${ownerTagStyle}">${item.personOwner}</span>
+                                    </div>
+                                    <div class="text-[11px] font-medium mt-1.5 flex items-center justify-between">
+                                        <span class="flex items-center gap-1">
+                                            <i class="fa-solid ${isDL ? 'fa-laptop-code' : 'fa-book-bookmark'} text-[10px]"></i>
+                                            ${activeTeacher}
+                                        </span>
+                                        ${hasPara ? '<span class="bg-amber-400 text-slate-900 text-[10px] font-black px-1.5 py-0.5 rounded shadow-2xs">PARA</span>' : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += `</div></td>`;
+                    }
+                });
+
+                html += `</tr>`;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function renderCalendarWeeksTable() {
+            const tbody = document.getElementById('schoolCalendarBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = window.schoolWeeks.map(w => {
+                const isActive = w.id === window.selectedWeekId;
+                const p1Sub = w.p1Subject || (w.rotation === 'A' ? 'Digital Literacy' : 'Library');
+                const p2Sub = w.p2Subject || (w.rotation === 'A' ? 'Library' : 'Digital Literacy');
+
+                return `
+                    <tr class="${isActive ? 'bg-indigo-50/70 font-semibold' : 'hover:bg-slate-50'} transition">
+                        <td class="p-3 text-slate-800">
+                            Week ${w.weekNum} ${isActive ? '<span class="ml-2 text-[10px] bg-indigo-600 text-white font-bold px-1.5 py-0.5 rounded">ACTIVE</span>' : ''}
+                        </td>
+                        <td class="p-3 text-slate-600">${w.shortLabel}</td>
+                        <td class="p-3">
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300">Person 1: ${p1Sub}</span>
+                        </td>
+                        <td class="p-3">
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-300">Person 2: ${p2Sub}</span>
+                        </td>
+                        <td class="p-3 text-right">
+                            <button onclick="toggleWeekRotation('${w.id}')" class="text-xs bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 px-2.5 py-1 rounded transition font-medium">Swap Roles</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        window.toggleWeekRotation = function(weekId) {
+            const targetIndex = window.schoolWeeks.findIndex(w => w.id === weekId);
+            if (targetIndex !== -1) {
+                const w = window.schoolWeeks[targetIndex];
+                w.rotation = w.rotation === 'A' ? 'B' : 'A';
+                w.p1Subject = w.rotation === 'A' ? 'Digital Literacy' : 'Library';
+                w.p2Subject = w.rotation === 'A' ? 'Library' : 'Digital Literacy';
+                
+                saveWeeksConfigCloud();
+                populateWeekSelector();
+                updateActiveWeekState();
+                renderMasterSchedule();
+                renderCalendarWeeksTable();
+                showToast(`Swapped roles for Week ${w.weekNum}`);
+            }
+        };
+
+        window.resetCalendarRotations = function() {
+            window.schoolWeeks = generateSchoolYearWeeks();
+            saveWeeksConfigCloud();
+            populateWeekSelector();
+            updateActiveWeekState();
+            renderMasterSchedule();
+            renderCalendarWeeksTable();
+            showToast('Reset school calendar rotations');
+        };
+
+        function renderCoverageLog() {
+            const tbody = document.getElementById('coverageLogBody');
+            if (!tbody) return;
+            const reasonFilter = document.getElementById('coverageReasonFilter')?.value || 'ALL';
+            const teacherFilter = document.getElementById('coverageTeacherFilter')?.value || 'ALL';
+
+            let filtered = window.coverageData.filter(item => {
+                if (reasonFilter !== 'ALL' && item.reason !== reasonFilter) return false;
+                if (teacherFilter !== 'ALL' && item.teacher !== teacherFilter) return false;
+                return true;
+            });
+
+            document.getElementById('coverageRecordCount').innerText = filtered.length;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 text-xs">No paraprofessional coverage records found matching the criteria.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(item => {
+                let statusBadge = 'bg-slate-100 text-slate-700';
+                if (item.status === 'Completed') statusBadge = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                if (item.status === 'Pending Para') statusBadge = 'bg-amber-100 text-amber-800 border-amber-200';
+                if (item.status === 'Scheduled') statusBadge = 'bg-blue-100 text-blue-800 border-blue-200';
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="p-3">
+                            <div class="font-semibold text-slate-800">${item.date}</div>
+                            <div class="text-xs text-slate-500">${item.time}</div>
+                        </td>
+                        <td class="p-3 font-medium text-slate-700">${item.classCode}</td>
+                        <td class="p-3">
+                            <span class="text-xs px-2 py-1 rounded ${item.teacher.includes('Digital') ? 'bg-indigo-50 text-indigo-700' : 'bg-emerald-50 text-emerald-700'}">
+                                ${item.teacher}
+                            </span>
+                        </td>
+                        <td class="p-3">
+                            <span class="font-semibold text-slate-800">${item.reason}</span>
+                            ${item.notes ? `<p class="text-xs text-slate-500 truncate max-w-xs" title="${item.notes}">${item.notes}</p>` : ''}
+                        </td>
+                        <td class="p-3 text-slate-600">${item.para || '<span class="text-amber-600 text-xs italic">Unassigned</span>'}</td>
+                        <td class="p-3">
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${statusBadge}">${item.status}</span>
+                        </td>
+                        <td class="p-3 text-right no-print">
+                            <button onclick="deleteCoverage('${item.id}')" class="text-slate-400 hover:text-rose-600 p-1 transition" title="Delete Entry">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderAnalytics() {
+            const totalSessions = window.coverageData.length;
+            const totalHours = (totalSessions * 0.5).toFixed(1);
+
+            document.getElementById('statTotalSessions').innerText = totalSessions;
+            document.getElementById('statTotalHours').innerText = `${totalHours} hrs`;
+
+            const reasonCounts = {};
+            const gradeCounts = {};
+
+            window.coverageData.forEach(c => {
+                reasonCounts[c.reason] = (reasonCounts[c.reason] || 0) + 1;
+                gradeCounts[c.grade] = (gradeCounts[c.grade] || 0) + 1;
+            });
+
+            let topReason = "N/A";
+            let maxReasonVal = 0;
+            for (let r in reasonCounts) {
+                if (reasonCounts[r] > maxReasonVal) {
+                    maxReasonVal = reasonCounts[r];
+                    topReason = r;
+                }
+            }
+            document.getElementById('statTopReason').innerText = topReason;
+
+            let topGrade = "N/A";
+            let maxGradeVal = 0;
+            for (let g in gradeCounts) {
+                if (gradeCounts[g] > maxGradeVal) {
+                    maxGradeVal = gradeCounts[g];
+                    topGrade = `Grade ${g}`;
+                }
+            }
+            document.getElementById('statTopGrade').innerText = topGrade;
+
+            const reasonList = document.getElementById('reasonBreakdownList');
+            if (reasonList) {
+                reasonList.innerHTML = Object.keys(reasonCounts).length === 0 
+                    ? '<p class="text-slate-400 text-xs">No coverage data logged yet.</p>'
+                    : Object.entries(reasonCounts).map(([reason, count]) => {
+                        const pct = Math.round((count / (totalSessions || 1)) * 100);
+                        return `
+                            <div>
+                                <div class="flex justify-between font-medium mb-1">
+                                    <span class="text-slate-700">${reason}</span>
+                                    <span class="text-slate-500">${count} sessions (${pct}%)</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-2">
+                                    <div class="bg-indigo-600 h-2 rounded-full" style="width: ${pct}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+            }
+
+            const gradeList = document.getElementById('gradeBreakdownList');
+            if (gradeList) {
+                gradeList.innerHTML = Object.keys(gradeCounts).length === 0
+                    ? '<p class="text-slate-400 text-xs">No coverage data logged yet.</p>'
+                    : Object.entries(gradeCounts).map(([grade, count]) => {
+                        const pct = Math.round((count / (totalSessions || 1)) * 100);
+                        return `
+                            <div>
+                                <div class="flex justify-between font-medium mb-1">
+                                    <span class="text-slate-700">Grade ${grade}</span>
+                                    <span class="text-slate-500">${count} sessions (${pct}%)</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-2">
+                                    <div class="bg-emerald-500 h-2 rounded-full" style="width: ${pct}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+            }
+        }
+
+        function renderScheduleBuilder() {
+            renderScheduleBuilderList();
+            renderScheduleBuilderMatrix();
+        }
+
+        function renderScheduleBuilderMatrix() {
+            const tbody = document.getElementById('scheduleBuilderMatrixBody');
+            if (!tbody) return;
+
+            let html = '';
+
+            TIME_SLOTS.forEach(time => {
+                html += `<tr>
+                    <td class="p-2 font-semibold text-[11px] text-slate-600 border-r bg-slate-50/60">${time}</td>`;
+
+                DAYS.forEach(day => {
+                    const p1Class = window.scheduleData.find(s => s.time === time && s.day === day && s.personOwner === 'Person 1');
+                    const p2Class = window.scheduleData.find(s => s.time === time && s.day === day && s.personOwner === 'Person 2');
+
+                    html += `<td class="p-1.5 border-r space-y-1 align-top bg-white">`;
+
+                    if (window.currentBuilderFilter === 'ALL' || window.currentBuilderFilter === 'Person 1') {
+                        if (p1Class) {
+                            html += `
+                                <div class="p-1.5 rounded bg-amber-50/90 border border-amber-200 text-[11px] flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold text-amber-950">P1: ${p1Class.classCode}</span>
+                                        <span class="text-[10px] text-amber-800 ml-1">(Gr. ${p1Class.grade})</span>
+                                    </div>
+                                    <button onclick="openClassModal('${p1Class.id}')" class="text-amber-700 hover:text-amber-950 p-0.5" title="Edit P1 Slot"><i class="fa-solid fa-pen-to-square text-[10px]"></i></button>
+                                </div>
+                            `;
+                        } else {
+                            html += `
+                                <button onclick="openClassModalForSlot('Person 1', '${day}', '${time}')" class="w-full text-left p-1 rounded border border-dashed border-slate-200 hover:border-amber-400 text-[10px] text-slate-400 hover:text-amber-700 flex items-center justify-between transition">
+                                    <span>+ P1 Class</span>
+                                    <i class="fa-solid fa-plus text-[9px]"></i>
+                                </button>
+                            `;
+                        }
+                    }
+
+                    if (window.currentBuilderFilter === 'ALL' || window.currentBuilderFilter === 'Person 2') {
+                        if (p2Class) {
+                            html += `
+                                <div class="p-1.5 rounded bg-purple-50/90 border border-purple-200 text-[11px] flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold text-purple-950">P2: ${p2Class.classCode}</span>
+                                        <span class="text-[10px] text-purple-800 ml-1">(Gr. ${p2Class.grade})</span>
+                                    </div>
+                                    <button onclick="openClassModal('${p2Class.id}')" class="text-purple-700 hover:text-purple-950 p-0.5" title="Edit P2 Slot"><i class="fa-solid fa-pen-to-square text-[10px]"></i></button>
+                                </div>
+                            `;
+                        } else {
+                            html += `
+                                <button onclick="openClassModalForSlot('Person 2', '${day}', '${time}')" class="w-full text-left p-1 rounded border border-dashed border-slate-200 hover:border-purple-400 text-[10px] text-slate-400 hover:text-purple-700 flex items-center justify-between transition">
+                                    <span>+ P2 Class</span>
+                                    <i class="fa-solid fa-plus text-[9px]"></i>
+                                </button>
+                            `;
+                        }
+                    }
+
+                    html += `</td>`;
+                });
+
+                html += `</tr>`;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        window.openClassModalForSlot = function(owner, day, time) {
+            window.openClassModal();
+            document.getElementById('modalOwner').value = owner;
+            document.getElementById('modalDay').value = day;
+            document.getElementById('modalTimeSlot').value = time;
+        };
+
+        function renderScheduleBuilderList() {
+            const tbody = document.getElementById('scheduleBuilderBody');
+            if (!tbody) return;
+
+            let filtered = window.scheduleData.filter(item => {
+                if (window.currentBuilderFilter === 'ALL') return true;
+                return item.personOwner === window.currentBuilderFilter;
+            });
+
+            document.getElementById('builderCountDisplay').innerText = filtered.length;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 text-xs">No class slots defined.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(item => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-3">
+                        <span class="text-xs font-bold px-2 py-1 rounded border ${item.personOwner === 'Person 1' ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-purple-100 text-purple-900 border-purple-300'}">
+                            ${item.personOwner}
+                        </span>
+                    </td>
+                    <td class="p-3 font-medium text-slate-800">${item.day} • <span class="text-xs text-slate-500">${item.time}</span></td>
+                    <td class="p-3 font-semibold text-slate-700">${item.classCode} (Gr. ${item.grade})</td>
+                    <td class="p-3 text-xs text-indigo-700 font-medium bg-indigo-50/50 rounded">${item.weekA}</td>
+                    <td class="p-3 text-xs text-emerald-700 font-medium bg-emerald-50/50 rounded">${item.weekB}</td>
+                    <td class="p-3 text-right space-x-2">
+                        <button onclick="openClassModal('${item.id}')" class="text-indigo-600 hover:text-indigo-800 text-xs font-semibold"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                        <button onclick="deleteClassSlot('${item.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold"><i class="fa-solid fa-trash-can"></i> Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.filterBuilderList = function(filter) {
+            window.currentBuilderFilter = filter;
+            ['all', 'p1', 'p2'].forEach(key => {
+                const btn = document.getElementById(`btn-builder-${key}`);
+                if (!btn) return;
+                const matches = (key === 'all' && filter === 'ALL') || (key === 'p1' && filter === 'Person 1') || (key === 'p2' && filter === 'Person 2');
+                btn.className = matches ? 'px-3 py-1.5 rounded-md bg-white shadow-xs text-indigo-700 font-bold' : 'px-3 py-1.5 rounded-md hover:text-slate-900 font-normal';
+            });
+            renderScheduleBuilder();
+        };
+
+        window.openClassModal = function(id = null) {
+            const modal = document.getElementById('classModal');
+            const title = document.getElementById('classModalTitle');
+            document.getElementById('classForm').reset();
+            document.getElementById('modalClassId').value = '';
+
+            if (id) {
+                const item = window.scheduleData.find(s => String(s.id) === String(id));
+                if (item) {
+                    title.innerText = 'Edit Class Schedule Slot';
+                    document.getElementById('modalClassId').value = item.id;
+                    document.getElementById('modalOwner').value = item.personOwner;
+                    document.getElementById('modalDay').value = item.day;
+                    document.getElementById('modalTimeSlot').value = item.time;
+                    document.getElementById('modalGrade').value = item.grade;
+                    document.getElementById('modalClassCode').value = item.classCode;
+                    document.getElementById('modalWeekA').value = item.weekA;
+                    document.getElementById('modalWeekB').value = item.weekB;
+                }
+            } else {
+                title.innerText = 'Add Class Schedule Slot';
+            }
+
+            modal.classList.remove('hidden');
+        };
+
+        window.closeClassModal = function() {
+            document.getElementById('classModal').classList.add('hidden');
+        };
+
+        window.handleClassSubmit = function(e) {
+            e.preventDefault();
+            const idVal = document.getElementById('modalClassId').value;
+            const personOwner = document.getElementById('modalOwner').value;
+            const day = document.getElementById('modalDay').value;
+            const time = document.getElementById('modalTimeSlot').value;
+            const grade = document.getElementById('modalGrade').value;
+            const classCode = document.getElementById('modalClassCode').value;
+            const weekA = document.getElementById('modalWeekA').value;
+            const weekB = document.getElementById('modalWeekB').value;
+
+            const newItem = {
+                id: idVal ? String(idVal) : String(Date.now()),
+                personOwner, day, time, grade, classCode, weekA, weekB
+            };
+
+            saveScheduleItemCloud(newItem);
+            renderMasterSchedule();
+            renderScheduleBuilder();
+            window.closeClassModal();
+            showToast('Class slot saved to cloud');
+        };
+
+        window.deleteClassSlot = function(id) {
+            deleteScheduleItemCloud(id);
+            showToast('Class slot removed');
+        };
+
+        window.resetDefaultSchedule = function() {
+            DEFAULT_SCHEDULE.forEach(item => saveScheduleItemCloud(item));
+            showToast('Reset class schedule slots to default template');
+        };
+
+        window.openParaModal = function() {
+            document.getElementById('paraModal').classList.remove('hidden');
+        };
+
+        window.closeParaModal = function() {
+            document.getElementById('paraModal').classList.add('hidden');
+        };
+
+        window.handleParaSubmit = function(e) {
+            e.preventDefault();
+            const teacher = document.getElementById('modalTeacher').value;
+            const date = document.getElementById('modalDate').value;
+            const classCode = document.getElementById('modalClass').value;
+            const time = document.getElementById('modalTime').value;
+            const reason = document.getElementById('modalReason').value;
+            const para = document.getElementById('modalPara').value;
+            const status = document.getElementById('modalStatus').value;
+            const notes = document.getElementById('modalNotes').value;
+
+            const gradeMatch = classCode.match(/K|1|2|3|4|5/);
+            const grade = gradeMatch ? gradeMatch[0] : 'K';
+
+            const newRecord = {
+                id: 'COV-' + Math.floor(100 + Math.random() * 900),
+                date, time, teacher, classCode, grade, reason, para, status, notes
+            };
+
+            saveCoverageItemCloud(newRecord);
+            window.closeParaModal();
+            showToast('Para coverage logged successfully');
+            document.getElementById('paraForm').reset();
+        };
+
+        window.deleteCoverage = function(id) {
+            deleteCoverageItemCloud(id);
+            showToast('Coverage record deleted');
+        };
+
+        function updatePendingBadge() {
+            const pending = window.coverageData.filter(c => c.status === 'Pending Para').length;
+            const badge = document.getElementById('pendingBadge');
+            if (badge) badge.innerText = pending;
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            document.getElementById('toastMsg').innerText = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        // Initialize application on DOM load
+        window.addEventListener('DOMContentLoaded', () => {
+            initCloudSync();
+        });
+    </script>
+</body>
+</html>
