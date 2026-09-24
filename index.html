@@ -613,25 +613,13 @@
         <span id="toastMsg">Action completed successfully.</span>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // App Identifier
-
-        // =========================================================================
-        // FIREBASE CONFIGURATION PLACEHOLDER
-        // Replace the default credentials below with your project values from the
-        // Firebase Console (Project Settings > General > Your Apps > Web app).
-        // =========================================================================
-        const firebaseConfig = {
-  apiKey: "AIzaSyD5AxORvPJGUZVfZvhauVeonWfN8DBO_iA",
-  authDomain: "k5-library-tracker.firebaseapp.com",
-  projectId: "k5-library-tracker",
-  storageBucket: "k5-library-tracker.firebasestorage.app",
-  messagingSenderId: "324494412921",
-  appId: "1:324494412921:web:d46a889517db3f579cd8a8"
+    const firebaseConfig = {
+  apiKey: "AIzaSyDguLFHtyMMEntKCP3LpqZ0GEbGJynFbNk",
+  authDomain: "library-schedule-db.firebaseapp.com",
+  projectId: "library-schedule-db",
+  storageBucket: "library-schedule-db.firebasestorage.app",
+  messagingSenderId: "439500864116",
+  appId: "1:439500864116:web:2bd4a38c79c740ac9d6f21"
 };
 
         let db = null;
