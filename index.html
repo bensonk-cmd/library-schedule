@@ -731,17 +731,81 @@
         window.currentBuilderFilter = 'ALL';
         window.builderViewMode = 'matrix';
 
-        async function initCloudSync() {
-            const isConfigPresent = firebaseConfig && 
-                firebaseConfig.apiKey && 
-                firebaseConfig.apiKey !== "demo-key" && 
-                !firebaseConfig.apiKey.includes("YOUR_API_KEY");
-            
-            if (!isConfigPresent) {
-                updateCloudStatus('offline', 'Local Storage Active');
-                loadFromLocalStorage();
-                return;
+   const ALLOWED_DOMAIN = "weston.org";
+let listenersStarted = false;
+
+function isAllowedUser(user) {
+    return !!(user && user.email && user.emailVerified &&
+        user.email.toLowerCase().endsWith('@' + ALLOWED_DOMAIN));
+}
+
+function showLoginScreen(errorMsg) {
+    document.getElementById('loginScreen')?.classList.remove('hidden');
+    const err = document.getElementById('loginError');
+    if (err) {
+        err.innerText = errorMsg || '';
+        err.classList.toggle('hidden', !errorMsg);
+    }
+}
+
+function hideLoginScreen() {
+    document.getElementById('loginScreen')?.classList.add('hidden');
+}
+
+async function initCloudSync() {
+    updateCloudStatus('syncing', 'Connecting Cloud...');
+    try {
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+    } catch (err) {
+        console.error("Firebase init failed:", err);
+        showLoginScreen('Could not connect to the server. Please try again later.');
+        return;
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user && isAllowedUser(user)) {
+            currentUser = user;
+            hideLoginScreen();
+            updateCloudStatus('online', `Cloud Sync Active (${user.email})`);
+            if (!listenersStarted) {
+                listenersStarted = true;
+                setupRealtimeListeners();
             }
+        } else {
+            currentUser = null;
+            if (user) {
+                // Signed in with a non-weston.org account: kick them out
+                await signOut(auth);
+                showLoginScreen('Access is limited to @' + ALLOWED_DOMAIN + ' accounts.');
+            } else {
+                showLoginScreen();
+            }
+        }
+    });
+}
+
+window.signInWithGoogle = async function() {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ hd: ALLOWED_DOMAIN, prompt: 'select_account' });
+    try {
+        await signInWithPopup(auth, provider);
+    } catch (err) {
+        console.warn("Sign-in error:", err);
+        if (err.code !== 'auth/popup-closed-by-user') {
+            showLoginScreen('Sign-in failed. Please allow pop-ups and try again.');
+        }
+    }
+};
+
+window.signOutUser = async function() {
+    // Clear locally cached data so it doesn't linger on shared computers
+    ['dl_lib_schedule_v3', 'dl_lib_coverage_v3', 'dl_lib_school_weeks_v3', 'dl_lib_selected_week_v3']
+        .forEach(k => localStorage.removeItem(k));
+    await signOut(auth);
+    location.reload();
+};
 
             updateCloudStatus('syncing', 'Connecting Cloud...');
             try {
