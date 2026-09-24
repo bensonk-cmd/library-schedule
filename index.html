@@ -807,29 +807,6 @@ window.signOutUser = async function() {
     location.reload();
 };
 
-            updateCloudStatus('syncing', 'Connecting Cloud...');
-            try {
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    const cred = await signInWithCustomToken(auth, __initial_auth_token);
-                    currentUser = cred.user;
-                } else {
-                    const cred = await signInAnonymously(auth);
-                    currentUser = cred.user;
-                }
-
-                updateCloudStatus('online', 'Cloud Sync Active');
-                setupRealtimeListeners();
-            } catch (err) {
-                console.warn("Cloud sync using fallback storage:", err);
-                updateCloudStatus('offline', 'Local Storage Active');
-                loadFromLocalStorage();
-            }
-        }
-
         function updateCloudStatus(state, text) {
             const txt = document.getElementById('cloudStatusText');
             const dot = document.getElementById('cloudDot');
