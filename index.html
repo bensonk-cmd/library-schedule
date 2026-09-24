@@ -21,6 +21,19 @@
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+    <div id="loginScreen" class="fixed inset-0 z-[100] bg-indigo-950 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-8 shadow-2xl text-center space-y-5">
+        <div class="text-indigo-600 text-4xl"><i class="fa-solid fa-book-open-reader"></i></div>
+        <div>
+            <h2 class="text-xl font-bold text-slate-800">K-5 Digital Literacy & Library Hub</h2>
+            <p class="text-sm text-slate-500 mt-1">Sign in with your @weston.org account to continue.</p>
+        </div>
+        <button onclick="signInWithGoogle()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-2">
+            <i class="fa-brands fa-google"></i> Sign in with Google
+        </button>
+        <p id="loginError" class="text-xs text-rose-600 font-medium hidden"></p>
+    </div>
+</div>
 
     <!-- Top Navigation Header -->
     <header class="bg-indigo-900 text-white shadow-md no-print">
@@ -615,7 +628,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // App Identifier
