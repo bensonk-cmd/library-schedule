@@ -1347,26 +1347,7 @@ window.signOutUser = async function() {
                         `;
                     }).join('');
             }
-                   const gradeList = document.getElementById('gradeBreakdownList');
-            if (gradeList) {
-                gradeList.innerHTML = Object.keys(gradeCounts).length === 0
-                    ? '<p class="text-slate-400 text-xs">No coverage data logged yet.</p>'
-                    : Object.entries(gradeCounts).map(([grade, count]) => {
-                        const pct = Math.round((count / (totalSessions || 1)) * 100);
-                        return `
-                            <div>
-                                <div class="flex justify-between font-medium mb-1">
-                                    <span class="text-slate-700">Grade ${grade}</span>
-                                    <span class="text-slate-500">${count} sessions (${pct}%)</span>
-                                </div>
-                                <div class="w-full bg-slate-100 rounded-full h-2">
-                                    <div class="bg-emerald-500 h-2 rounded-full" style="width: ${pct}%"></div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-            }
-
+                   
             const activeWeekObj = window.schoolWeeks.find(w => w.id === window.selectedWeekId) || window.schoolWeeks[0];
             const weekCompleted = activeWeekObj
                 ? window.coverageData.filter(c => c.status === 'Completed' && c.date >= activeWeekObj.start && c.date <= activeWeekObj.end)
