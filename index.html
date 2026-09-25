@@ -1021,7 +1021,7 @@ window.signOutUser = async function() {
             selector.value = window.selectedWeekId;
         };
 
-        window.handleWeekChange = function() {
+                window.handleWeekChange = function() {
             const selector = document.getElementById('weekSelector');
             if (selector) {
                 window.selectedWeekId = selector.value;
@@ -1029,6 +1029,7 @@ window.signOutUser = async function() {
                 updateActiveWeekState();
                 renderMasterSchedule();
                 renderCalendarWeeksTable();
+                renderAnalytics();
             }
         };
 
