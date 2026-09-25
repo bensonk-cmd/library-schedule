@@ -1480,7 +1480,40 @@ window.signOutUser = async function() {
             showToast('Reset class schedule slots to default template');
         };
 
-        window.openParaModal = function() {
+                const DAY_ORDER = { Monday: 0, Tuesday: 1, Wednesday: 2, Thursday: 3, Friday: 4 };
+
+        function populateParaClassDropdown(selectedScheduleId) {
+            const select = document.getElementById('modalClass');
+            if (!select) return;
+            const sorted = [...window.scheduleData].sort((a, b) => {
+                if (DAY_ORDER[a.day] !== DAY_ORDER[b.day]) return DAY_ORDER[a.day] - DAY_ORDER[b.day];
+                return TIME_SLOTS.indexOf(a.time) - TIME_SLOTS.indexOf(b.time);
+            });
+            select.innerHTML = sorted.map(item =>
+                `<option value="${item.id}">${item.personOwner}: ${item.classCode} (Gr. ${item.grade}) — ${item.day}, ${item.time}</option>`
+            ).join('');
+            if (selectedScheduleId) select.value = selectedScheduleId;
+        }
+
+        window.openParaModal = function(id = null) {
+            document.getElementById('paraForm').reset();
+            document.getElementById('modalParaId').value = '';
+            populateParaClassDropdown();
+
+            if (id) {
+                const item = window.coverageData.find(c => String(c.id) === String(id));
+                if (item) {
+                    document.getElementById('modalParaId').value = item.id;
+                    document.getElementById('modalTeacher').value = item.teacher;
+                    document.getElementById('modalDate').value = item.date;
+                    document.getElementById('modalReason').value = item.reason;
+                    document.getElementById('modalPara').value = item.para || '';
+                    document.getElementById('modalStatus').value = item.status;
+                    document.getElementById('modalNotes').value = item.notes || '';
+                    if (item.scheduleId) document.getElementById('modalClass').value = item.scheduleId;
+                }
+            }
+
             document.getElementById('paraModal').classList.remove('hidden');
         };
 
@@ -1490,26 +1523,37 @@ window.signOutUser = async function() {
 
         window.handleParaSubmit = function(e) {
             e.preventDefault();
+            const idVal = document.getElementById('modalParaId').value;
             const teacher = document.getElementById('modalTeacher').value;
             const date = document.getElementById('modalDate').value;
-            const classCode = document.getElementById('modalClass').value;
-            const time = document.getElementById('modalTime').value;
+            const scheduleId = document.getElementById('modalClass').value;
             const reason = document.getElementById('modalReason').value;
             const para = document.getElementById('modalPara').value;
             const status = document.getElementById('modalStatus').value;
             const notes = document.getElementById('modalNotes').value;
 
-            const gradeMatch = classCode.match(/K|1|2|3|4|5/);
-            const grade = gradeMatch ? gradeMatch[0] : 'K';
+            const scheduleItem = window.scheduleData.find(s => String(s.id) === String(scheduleId));
+            if (!scheduleItem) {
+                showToast('Please select a valid class slot');
+                return;
+            }
 
             const newRecord = {
-                id: 'COV-' + Math.floor(100 + Math.random() * 900),
-                date, time, teacher, classCode, grade, reason, para, status, notes
+                id: idVal ? idVal : ('COV-' + Math.floor(1000 + Math.random() * 9000)),
+                scheduleId: scheduleItem.id,
+                date,
+                time: scheduleItem.time,
+                day: scheduleItem.day,
+                teacher,
+                classCode: scheduleItem.classCode,
+                grade: scheduleItem.grade,
+                personOwner: scheduleItem.personOwner,
+                reason, para, status, notes
             };
 
             saveCoverageItemCloud(newRecord);
             window.closeParaModal();
-            showToast('Para coverage logged successfully');
+            showToast(idVal ? 'Para coverage updated' : 'Para coverage logged successfully');
             document.getElementById('paraForm').reset();
         };
 
