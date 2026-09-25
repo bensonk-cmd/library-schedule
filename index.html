@@ -532,7 +532,8 @@
                 <button onclick="closeParaModal()" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <form id="paraForm" onsubmit="handleParaSubmit(event)" class="space-y-4 text-xs sm:text-sm">
+                        <form id="paraForm" onsubmit="handleParaSubmit(event)" class="space-y-4 text-xs sm:text-sm">
+                <input type="hidden" id="modalParaId">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Teacher Requesting</label>
