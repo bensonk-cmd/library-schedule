@@ -1200,7 +1200,10 @@ window.signOutUser = async function() {
                         <td class="p-3">
                             <span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${statusBadge}">${item.status}</span>
                         </td>
-                        <td class="p-3 text-right no-print">
+                                                <td class="p-3 text-right no-print space-x-2">
+                            <button onclick="openParaModal('${item.id}')" class="text-indigo-600 hover:text-indigo-800 p-1 transition" title="Edit Entry">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
                             <button onclick="deleteCoverage('${item.id}')" class="text-slate-400 hover:text-rose-600 p-1 transition" title="Delete Entry">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
