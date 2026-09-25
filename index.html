@@ -1062,14 +1062,40 @@ window.signOutUser = async function() {
                         html += `<td class="p-2 border-r">`;
                         html += `<div class="grid grid-cols-1 ${matches.length > 1 && personFilter === 'ALL' ? 'xl:grid-cols-2' : ''} gap-1.5">`;
 
-                        matches.forEach(item => {
+                                                matches.forEach(item => {
                             const activeTeacher = item.personOwner === 'Person 1' ? p1Sub : p2Sub;
                             if (gradeFilter !== 'ALL' && item.grade !== gradeFilter) return;
                             if (teacherFilter !== 'ALL' && activeTeacher !== teacherFilter) return;
 
-                            const hasPara = window.coverageData.some(c => c.time === item.time && c.classCode.includes(item.classCode));
+                            const paraRecord = window.coverageData.find(c =>
+                                c.scheduleId === item.id &&
+                                (!activeWeekObj || (c.date >= activeWeekObj.start && c.date <= activeWeekObj.end))
+                            );
                             const isDL = activeTeacher === 'Digital Literacy';
-                            
+
+                            if (paraRecord) {
+                                const statusStyle = paraRecord.status === 'Completed' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+                                    paraRecord.status === 'Scheduled' ? 'bg-blue-50 text-blue-800 border-blue-300' :
+                                    'bg-amber-50 text-amber-800 border-amber-300';
+
+                                html += `
+                                    <div class="p-2 rounded-lg border ${statusStyle} relative shadow-2xs">
+                                        <div class="flex justify-between items-start gap-1">
+                                            <span class="font-bold text-xs">${item.classCode} (Gr. ${item.grade})</span>
+                                            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded border bg-slate-900 text-white">PARA</span>
+                                        </div>
+                                        <div class="text-[11px] font-medium mt-1.5 flex items-center justify-between">
+                                            <span class="flex items-center gap-1">
+                                                <i class="fa-solid fa-user-shield text-[10px]"></i>
+                                                Para: ${paraRecord.status}
+                                            </span>
+                                        </div>
+                                        ${paraRecord.para ? `<div class="text-[10px] mt-1 text-slate-600 truncate">${paraRecord.para}</div>` : ''}
+                                    </div>
+                                `;
+                                return;
+                            }
+
                             const badgeStyle = isDL ? 'bg-indigo-50 text-indigo-800 border-indigo-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200';
                             const ownerTagStyle = item.personOwner === 'Person 1' ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-purple-100 text-purple-900 border-purple-300';
 
@@ -1084,7 +1110,6 @@ window.signOutUser = async function() {
                                             <i class="fa-solid ${isDL ? 'fa-laptop-code' : 'fa-book-bookmark'} text-[10px]"></i>
                                             ${activeTeacher}
                                         </span>
-                                        ${hasPara ? '<span class="bg-amber-400 text-slate-900 text-[10px] font-black px-1.5 py-0.5 rounded shadow-2xs">PARA</span>' : ''}
                                     </div>
                                 </div>
                             `;
