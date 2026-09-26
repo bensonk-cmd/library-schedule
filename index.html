@@ -1545,8 +1545,8 @@ window.signOutUser = async function() {
                     <td class="p-3 text-xs text-indigo-700 font-medium bg-indigo-50/50 rounded">${item.weekA}</td>
                     <td class="p-3 text-xs text-emerald-700 font-medium bg-emerald-50/50 rounded">${item.weekB}</td>
                     <td class="p-3 text-right space-x-2">
-                        <button onclick="openClassModal('${item.id}')" class="text-indigo-600 hover:text-indigo-800 text-xs font-semibold"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-                        <button onclick="deleteClassSlot('${item.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold"><i class="fa-solid fa-trash-can"></i> Delete</button>
+                    <button onclick="openClassModal('${item.id}')" class="editor-only text-indigo-600 hover:text-indigo-800 text-xs font-semibold"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                    <button onclick="deleteClassSlot('${item.id}')" class="editor-only text-rose-500 hover:text-rose-700 text-xs font-semibold"><i class="fa-solid fa-trash-can"></i> Delete</button>
                     </td>
                 </tr>
             `).join('');
