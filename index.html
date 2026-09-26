@@ -791,17 +791,20 @@ async function initCloudSync() {
         return;
     }
 
-    onAuthStateChanged(auth, async (user) => {
+        onAuthStateChanged(auth, async (user) => {
         if (user && isAllowedUser(user)) {
             currentUser = user;
             hideLoginScreen();
             updateCloudStatus('online', `Cloud Sync Active (${user.email})`);
+            await loadUserRole(user);
             if (!listenersStarted) {
                 listenersStarted = true;
                 setupRealtimeListeners();
             }
         } else {
             currentUser = null;
+            window.userRole = 'viewer';
+            applyRolePermissions();
             if (user) {
                 // Signed in with a non-weston.org account: kick them out
                 await signOut(auth);
