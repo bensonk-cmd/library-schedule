@@ -1225,16 +1225,24 @@ window.signOutUser = async function() {
             showToast('Reset school calendar rotations');
         };
 
-        function renderCoverageLog() {
+                function renderCoverageLog() {
             const tbody = document.getElementById('coverageLogBody');
             if (!tbody) return;
             const reasonFilter = document.getElementById('coverageReasonFilter')?.value || 'ALL';
             const teacherFilter = document.getElementById('coverageTeacherFilter')?.value || 'ALL';
+            const weekFilter = document.getElementById('coverageWeekFilter')?.value || 'ALL';
+            const weekObj = weekFilter !== 'ALL' ? window.schoolWeeks.find(w => w.id === weekFilter) : null;
 
             let filtered = window.coverageData.filter(item => {
                 if (reasonFilter !== 'ALL' && item.reason !== reasonFilter) return false;
                 if (teacherFilter !== 'ALL' && item.teacher !== teacherFilter) return false;
+                if (weekObj && !(item.date >= weekObj.start && item.date <= weekObj.end)) return false;
                 return true;
+            });
+
+            filtered.sort((a, b) => {
+                if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+                return TIME_SLOTS.indexOf(a.time) - TIME_SLOTS.indexOf(b.time);
             });
 
             document.getElementById('coverageRecordCount').innerText = filtered.length;
