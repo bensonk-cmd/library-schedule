@@ -1703,6 +1703,11 @@ window.signOutUser = async function() {
             }, 3000);
         }
 
+        // Expose render functions globally so inline HTML event handlers can call them
+        window.renderCoverageLog = renderCoverageLog;
+        window.renderMasterSchedule = renderMasterSchedule;
+        window.renderAnalytics = renderAnalytics;
+
         // Initialize application on DOM load
         window.addEventListener('DOMContentLoaded', () => {
             initCloudSync();
