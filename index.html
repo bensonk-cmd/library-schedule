@@ -756,6 +756,29 @@ function hideLoginScreen() {
     document.getElementById('loginScreen')?.classList.add('hidden');
 }
 
+window.userRole = 'viewer';
+
+async function loadUserRole(user) {
+    if (!db || !user) {
+        window.userRole = 'viewer';
+        applyRolePermissions();
+        return;
+    }
+    try {
+        const roleDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'roles', user.email));
+        window.userRole = roleDoc.exists() ? 'editor' : 'viewer';
+    } catch (err) {
+        console.warn("Could not load role, defaulting to viewer:", err);
+        window.userRole = 'viewer';
+    }
+    applyRolePermissions();
+}
+
+function applyRolePermissions() {
+    const isEditor = window.userRole === 'editor';
+    document.body.classList.toggle('viewer-mode', !isEditor);
+}
+
 async function initCloudSync() {
     updateCloudStatus('syncing', 'Connecting Cloud...');
     try {
