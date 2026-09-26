@@ -1007,11 +1007,20 @@ window.signOutUser = async function() {
             }
         };
 
-        window.populateWeekSelector = function() {
+            window.populateWeekSelector = function() {
             const selector = document.getElementById('weekSelector');
-            if (!selector) return;
-            selector.innerHTML = window.schoolWeeks.map(w => `<option value="${w.id}">${w.label}</option>`).join('');
-            selector.value = window.selectedWeekId;
+            if (selector) {
+                selector.innerHTML = window.schoolWeeks.map(w => `<option value="${w.id}">${w.label}</option>`).join('');
+                selector.value = window.selectedWeekId;
+            }
+
+            const coverageFilter = document.getElementById('coverageWeekFilter');
+            if (coverageFilter) {
+                const previousValue = coverageFilter.value || 'ALL';
+                coverageFilter.innerHTML = `<option value="ALL">All Weeks</option>` +
+                    window.schoolWeeks.map(w => `<option value="${w.id}">${w.label}</option>`).join('');
+                coverageFilter.value = previousValue;
+            }
         };
 
                 window.handleWeekChange = function() {
