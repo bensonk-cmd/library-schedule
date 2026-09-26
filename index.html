@@ -1467,7 +1467,7 @@ window.signOutUser = async function() {
                                         <span class="font-bold text-amber-950">P1: ${p1Class.classCode}</span>
                                         <span class="text-[10px] text-amber-800 ml-1">(Gr. ${p1Class.grade})</span>
                                     </div>
-                                    <button onclick="openClassModal('${p1Class.id}')" class="text-amber-700 hover:text-amber-950 p-0.5" title="Edit P1 Slot"><i class="fa-solid fa-pen-to-square text-[10px]"></i></button>
+                                    <button onclick="openClassModal('${p1Class.id}')" class="editor-only text-amber-700 hover:text-amber-950 p-0.5" title="Edit P1 Slot">
                                 </div>
                             `;
                         } else {
@@ -1488,7 +1488,7 @@ window.signOutUser = async function() {
                                         <span class="font-bold text-purple-950">P2: ${p2Class.classCode}</span>
                                         <span class="text-[10px] text-purple-800 ml-1">(Gr. ${p2Class.grade})</span>
                                     </div>
-                                    <button onclick="openClassModal('${p2Class.id}')" class="text-purple-700 hover:text-purple-950 p-0.5" title="Edit P2 Slot"><i class="fa-solid fa-pen-to-square text-[10px]"></i></button>
+                                    <button onclick="openClassModal('${p2Class.id}')" class="editor-only text-purple-700 hover:text-purple-950 p-0.5" title="Edit P2 Slot">
                                 </div>
                             `;
                         } else {
