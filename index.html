@@ -1159,9 +1159,7 @@ window.signOutUser = async function() {
                             const isDL = activeTeacher === 'Digital Literacy';
 
                             if (paraRecord) {
-                                                                const statusStyle = paraRecord.status === 'Completed'
-                                    ? 'bg-orange-50 text-orange-800 border-orange-300'
-                                    : 'bg-slate-100 text-slate-600 border-slate-300';
+                                const statusStyle = 'bg-slate-100 text-slate-600 border-slate-300';
 
                                 html += `
                                     <div class="p-2 rounded-lg border ${statusStyle} relative shadow-2xs">
@@ -1185,12 +1183,9 @@ window.signOutUser = async function() {
                             if (isP1 || isP2) {
                                 badgeStyle = isDL ? 'bg-indigo-50 text-indigo-800 border-indigo-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200';
                                 iconClass = isDL ? 'fa-laptop-code' : 'fa-book-bookmark';
-                            } else if (item.personOwner === 'Person 3') {
-                                badgeStyle = 'bg-teal-50 text-teal-800 border-teal-200';
-                                iconClass = 'fa-chalkboard';
                             } else {
                                 badgeStyle = 'bg-rose-50 text-rose-800 border-rose-200';
-                                iconClass = 'fa-chalkboard-user';
+                                iconClass = 'fa-chalkboard';
                             }
                             const ownerTagStyle = OWNER_TAG_STYLES[item.personOwner] || 'bg-slate-100 text-slate-700 border-slate-300';
 
@@ -1469,7 +1464,7 @@ window.signOutUser = async function() {
         const BUILDER_PERSON_CONFIG = [
             { owner: 'Person 1', short: 'P1', bg: 'bg-amber-50/90', border: 'border-amber-200', text: 'text-amber-950', subtext: 'text-amber-800', iconColor: 'text-amber-700 hover:text-amber-950', dashHover: 'hover:border-amber-400', dashText: 'hover:text-amber-700' },
             { owner: 'Person 2', short: 'P2', bg: 'bg-purple-50/90', border: 'border-purple-200', text: 'text-purple-950', subtext: 'text-purple-800', iconColor: 'text-purple-700 hover:text-purple-950', dashHover: 'hover:border-purple-400', dashText: 'hover:text-purple-700' },
-            { owner: 'Person 3', short: 'P3', bg: 'bg-teal-50/90', border: 'border-teal-200', text: 'text-teal-950', subtext: 'text-teal-800', iconColor: 'text-teal-700 hover:text-teal-950', dashHover: 'hover:border-teal-400', dashText: 'hover:text-teal-700' },
+            { owner: 'Person 3', short: 'P3', bg: 'bg-rose-50/90', border: 'border-rose-200', text: 'text-rose-950', subtext: 'text-rose-800', iconColor: 'text-rose-700 hover:text-rose-950', dashHover: 'hover:border-rose-400', dashText: 'hover:text-rose-700' },
             { owner: 'Person 4', short: 'P4', bg: 'bg-rose-50/90', border: 'border-rose-200', text: 'text-rose-950', subtext: 'text-rose-800', iconColor: 'text-rose-700 hover:text-rose-950', dashHover: 'hover:border-rose-400', dashText: 'hover:text-rose-700' }
         ];
 
@@ -1545,7 +1540,7 @@ window.signOutUser = async function() {
         const OWNER_TAG_STYLES = {
             'Person 1': 'bg-amber-100 text-amber-900 border-amber-300',
             'Person 2': 'bg-purple-100 text-purple-900 border-purple-300',
-            'Person 3': 'bg-teal-100 text-teal-900 border-teal-300',
+            'Person 3': 'bg-rose-100 text-rose-900 border-rose-300',
             'Person 4': 'bg-rose-100 text-rose-900 border-rose-300'
         };
 
