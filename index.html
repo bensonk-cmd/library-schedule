@@ -899,7 +899,10 @@ window.signOutUser = async function() {
                 if (snapshot.exists()) {
                     const data = snapshot.data();
                     if (data.weeks) window.schoolWeeks = data.weeks;
-                    if (data.selectedWeekId) window.selectedWeekId = data.selectedWeekId;
+                    // Note: selectedWeekId is intentionally NOT read here.
+                    // Which week a person is currently viewing is a personal,
+                    // local-only preference, not shared schedule data, so it
+                    // must never be overwritten by this shared listener.
                     saveToLocalStorage();
                     populateWeekSelector();
                     updateActiveWeekState();
@@ -989,9 +992,13 @@ window.signOutUser = async function() {
             if (!currentUser || !db) return;
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'weeks');
+                // Only the rotation data (weeks array) is shared/synced.
+                // selectedWeekId is a personal "what am I viewing" preference
+                // and is intentionally kept out of the shared document so that
+                // viewers (who can't write to Firestore) can still browse weeks
+                // locally without a failed write snapping them back.
                 await setDoc(docRef, {
-                    weeks: window.schoolWeeks,
-                    selectedWeekId: window.selectedWeekId
+                    weeks: window.schoolWeeks
                 });
             } catch (err) {
                 console.error("Error saving weeks config:", err);
@@ -1067,7 +1074,9 @@ window.signOutUser = async function() {
             const selector = document.getElementById('weekSelector');
             if (selector) {
                 window.selectedWeekId = selector.value;
-                saveWeeksConfigCloud();
+                // Local-only: which week you're viewing is personal, so this
+                // just saves to this browser's localStorage, not Firestore.
+                saveToLocalStorage();
                 updateActiveWeekState();
                 renderMasterSchedule();
                 renderCalendarWeeksTable();
