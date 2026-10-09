@@ -115,6 +115,9 @@
                 <button onclick="switchTab('rotations')" id="tab-rotations" class="py-3.5 px-1 text-sm font-medium text-slate-500 hover:text-indigo-600 whitespace-nowrap flex items-center gap-2">
                     <i class="fa-solid fa-sliders"></i> Schedule Builder
                 </button>
+                <button onclick="switchTab('earlyrelease')" id="tab-earlyrelease" class="py-3.5 px-1 text-sm font-medium text-slate-500 hover:text-indigo-600 whitespace-nowrap flex items-center gap-2">
+                    <i class="fa-solid fa-stopwatch"></i> Early Release
+                </button>
             </div>
         </div>
     </nav>
@@ -442,6 +445,53 @@
 
         </div>
 
+        <!-- TAB 5: EARLY RELEASE SCHEDULE -->
+        <div id="view-earlyrelease" class="space-y-6 hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 bg-indigo-100 text-indigo-800 rounded-lg font-bold"><i class="fa-solid fa-stopwatch"></i></span>
+                            <h2 class="text-lg font-bold text-slate-800">Early Release Schedule</h2>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">One Wednesday a month, school dismisses early and classes run on a shortened, overlapping 20-minute schedule. Mark each Early Release date and assign Person 1–4 independently for that date — this lineup is separate from the regular weekly schedule and can differ from month to month.</p>
+                    </div>
+                    <div class="editor-only flex items-center gap-2 flex-wrap">
+                        <input type="date" id="newEarlyReleaseDate" class="border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500">
+                        <button onclick="addEarlyReleaseDate()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3.5 py-2 rounded-lg text-xs sm:text-sm shadow-sm transition flex items-center gap-2 whitespace-nowrap">
+                            <i class="fa-solid fa-plus"></i> Mark as Early Release
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <label class="text-xs font-semibold text-slate-500">Viewing Date:</label>
+                    <select id="earlyReleaseDateSelector" onchange="renderEarlyReleaseSchedule()" class="text-sm font-medium border border-indigo-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-indigo-500 bg-indigo-50/50 text-indigo-900">
+                        <option value="">No Early Release dates marked yet</option>
+                    </select>
+                    <button onclick="deleteEarlyReleaseDate()" class="editor-only text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center gap-1 px-2 py-1 rounded hover:bg-rose-50 transition">
+                        <i class="fa-solid fa-trash-can"></i> Remove This Date
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 text-xs uppercase tracking-wider border-b border-slate-200">
+                                <th class="p-3 w-36 font-bold border-r">Time Slot</th>
+                                <th class="p-3 font-bold">Assignments</th>
+                            </tr>
+                        </thead>
+                        <tbody id="earlyReleaseScheduleBody" class="divide-y divide-slate-200 text-sm">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- MODAL 1: ADD/EDIT CLASS SCHEDULE SLOT -->
@@ -565,6 +615,16 @@
 
                         <form id="paraForm" onsubmit="handleParaSubmit(event)" class="space-y-4 text-xs sm:text-sm">
                 <input type="hidden" id="modalParaId">
+                <input type="hidden" id="modalScheduleType" value="regular">
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Schedule Type</label>
+                    <div class="inline-flex p-1 bg-slate-100 rounded-lg text-xs font-semibold text-slate-600 w-full">
+                        <button type="button" onclick="setParaScheduleType('regular')" id="btn-para-regular" class="flex-1 px-3 py-1.5 rounded-md bg-white shadow-xs text-indigo-700 font-bold">Regular Weekly Schedule</button>
+                        <button type="button" onclick="setParaScheduleType('earlyRelease')" id="btn-para-earlyrelease" class="flex-1 px-3 py-1.5 rounded-md hover:text-slate-900 font-normal">Early Release Schedule</button>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Teacher Requesting</label>
@@ -573,14 +633,20 @@
                             <option value="Library Teacher">Library Teacher</option>
                         </select>
                     </div>
-                    <div>
+                    <div id="regularDateField">
                         <label class="block font-semibold text-slate-700 mb-1">Date Needed</label>
-                        <input type="date" id="modalDate" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                        <input type="date" id="modalDate" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div id="earlyReleaseDateField" class="hidden">
+                        <label class="block font-semibold text-slate-700 mb-1">Early Release Date</label>
+                        <select id="modalErDate" onchange="populateParaClassDropdown()" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                            <!-- Populated dynamically from marked Early Release dates -->
+                        </select>
                     </div>
                 </div>
 
                                 <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Class Slot (Person, Class, Day & Time)</label>
+                    <label class="block font-semibold text-slate-700 mb-1" id="modalClassLabel">Class Slot (Person, Class, Day & Time)</label>
                     <select id="modalClass" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
                         <!-- Populated dynamically from the live schedule -->
                     </select>
@@ -619,6 +685,62 @@
                 <div class="flex justify-end space-x-3 pt-3 border-t">
                     <button type="button" onclick="closeParaModal()" class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-100 font-medium">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow-sm">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: ADD/EDIT EARLY RELEASE SLOT -->
+    <div id="earlyReleaseModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div class="flex items-center gap-2 text-indigo-900">
+                    <i class="fa-solid fa-stopwatch text-indigo-600 text-xl"></i>
+                    <h3 class="font-bold text-lg" id="earlyReleaseModalTitle">Add Early Release Slot</h3>
+                </div>
+                <button onclick="closeEarlyReleaseModal()" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="earlyReleaseForm" onsubmit="handleEarlyReleaseSubmit(event)" class="space-y-4 text-xs sm:text-sm">
+                <input type="hidden" id="erModalId">
+                <input type="hidden" id="erModalDate">
+                <input type="hidden" id="erModalTime">
+
+                <div class="p-2.5 bg-slate-50 border rounded-lg text-xs text-slate-600" id="erModalContext">
+                    <!-- Populated dynamically with date + time -->
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Assign to</label>
+                    <select id="erModalOwner" required class="w-full border border-indigo-300 bg-indigo-50/50 rounded-lg p-2.5 font-semibold text-indigo-900 focus:ring-2 focus:ring-indigo-500">
+                        <option value="Person 1">Person 1</option>
+                        <option value="Person 2">Person 2</option>
+                        <option value="Person 3">Person 3</option>
+                        <option value="Person 4">Person 4</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Grade Level</label>
+                        <select id="erModalGrade" required class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                            <option value="K">Kindergarten</option>
+                            <option value="1">1st Grade</option>
+                            <option value="2">2nd Grade</option>
+                            <option value="3">3rd Grade</option>
+                            <option value="4">4th Grade</option>
+                            <option value="5">5th Grade</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Class Code / Name</label>
+                        <input type="text" id="erModalClassCode" required placeholder="e.g. CS K, WS G3" class="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-3 border-t">
+                    <button type="button" onclick="closeEarlyReleaseModal()" class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-100 font-medium">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow-sm">Save Slot</button>
                 </div>
             </form>
         </div>
@@ -742,6 +864,14 @@
             return weeks;
         }
 
+        // Early Release day uses its own shorter, overlapping set of time
+        // slots - these are independent of the regular TIME_SLOTS array.
+        const EARLY_RELEASE_TIME_SLOTS = [
+            "8:15am - 8:35am", "8:40am - 9:00am", "9:05am - 9:25am", "9:15am - 9:35am",
+            "9:30am - 9:50am", "9:40am - 10:10am", "9:55am - 10:15am", "10:15am - 10:35am",
+            "10:40am - 11:00am", "11:05am - 11:25am"
+        ];
+
         // Global Application State Variables
         window.scheduleData = DEFAULT_SCHEDULE;
         window.coverageData = INITIAL_COVERAGE;
@@ -750,6 +880,9 @@
         window.currentWeek = 'A';
         window.currentBuilderFilter = 'ALL';
         window.builderViewMode = 'matrix';
+        window.earlyReleaseDates = [];       // shared: list of 'YYYY-MM-DD' strings marked Early Release
+        window.earlyReleaseData = [];        // shared: slot assignments, each {id, date, time, personOwner, grade, classCode}
+        window.selectedEarlyReleaseDate = null; // local-only: which date is currently being viewed/edited
 
    const ALLOWED_DOMAIN = "weston.org";
 let listenersStarted = false;
@@ -914,6 +1047,26 @@ window.signOutUser = async function() {
                     saveWeeksConfigCloud();
                 }
             }, (err) => console.error("Weeks config sync error:", err));
+
+            // Listen for Early Release marked dates
+            const earlyReleaseDatesDoc = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'earlyReleaseDates');
+            onSnapshot(earlyReleaseDatesDoc, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.data();
+                    if (data.dates) window.earlyReleaseDates = data.dates;
+                    saveToLocalStorage();
+                    populateEarlyReleaseDateSelector();
+                    renderEarlyReleaseSchedule();
+                }
+            }, (err) => console.error("Early Release dates sync error:", err));
+
+            // Listen for Early Release slot assignments (starts empty - no seed data needed)
+            const earlyReleaseCol = collection(db, 'artifacts', appId, 'public', 'data', 'earlyRelease');
+            onSnapshot(earlyReleaseCol, (snapshot) => {
+                window.earlyReleaseData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                saveToLocalStorage();
+                renderEarlyReleaseSchedule();
+            }, (err) => console.error("Early Release schedule sync error:", err));
         }
 
         async function saveScheduleItemCloud(item) {
@@ -1020,6 +1173,15 @@ window.signOutUser = async function() {
             const localSelectedWeek = localStorage.getItem('dl_lib_selected_week_v3');
             window.selectedWeekId = localSelectedWeek || window.schoolWeeks[0]?.id || 'W1';
 
+            const localErDates = localStorage.getItem('dl_lib_early_release_dates_v1');
+            window.earlyReleaseDates = localErDates ? JSON.parse(localErDates) : [];
+
+            const localErData = localStorage.getItem('dl_lib_early_release_data_v1');
+            window.earlyReleaseData = localErData ? JSON.parse(localErData) : [];
+
+            const localSelectedErDate = localStorage.getItem('dl_lib_selected_early_release_date_v1');
+            window.selectedEarlyReleaseDate = localSelectedErDate || window.earlyReleaseDates[0] || null;
+
             populateWeekSelector();
             updateActiveWeekState();
             renderMasterSchedule();
@@ -1028,6 +1190,8 @@ window.signOutUser = async function() {
             renderCalendarWeeksTable();
             renderScheduleBuilder();
             updatePendingBadge();
+            populateEarlyReleaseDateSelector();
+            renderEarlyReleaseSchedule();
         }
 
         function saveToLocalStorage() {
@@ -1035,11 +1199,16 @@ window.signOutUser = async function() {
             localStorage.setItem('dl_lib_coverage_v3', JSON.stringify(window.coverageData));
             localStorage.setItem('dl_lib_school_weeks_v3', JSON.stringify(window.schoolWeeks));
             localStorage.setItem('dl_lib_selected_week_v3', window.selectedWeekId);
+            localStorage.setItem('dl_lib_early_release_dates_v1', JSON.stringify(window.earlyReleaseDates));
+            localStorage.setItem('dl_lib_early_release_data_v1', JSON.stringify(window.earlyReleaseData));
+            if (window.selectedEarlyReleaseDate) {
+                localStorage.setItem('dl_lib_selected_early_release_date_v1', window.selectedEarlyReleaseDate);
+            }
         }
 
         // Attach Global Handlers to Window Context
         window.switchTab = function(tabName) {
-            const tabs = ['master', 'coverage', 'analytics', 'rotations'];
+            const tabs = ['master', 'coverage', 'analytics', 'rotations', 'earlyrelease'];
             tabs.forEach(t => {
                 const btn = document.getElementById(`tab-${t}`);
                 const view = document.getElementById(`view-${t}`);
@@ -1053,6 +1222,10 @@ window.signOutUser = async function() {
             if (tabName === 'rotations') {
                 renderScheduleBuilder();
                 renderCalendarWeeksTable();
+            }
+            if (tabName === 'earlyrelease') {
+                populateEarlyReleaseDateSelector();
+                renderEarlyReleaseSchedule();
             }
         };
 
@@ -1298,9 +1471,16 @@ window.signOutUser = async function() {
                 return true;
             });
 
+            const timeSlotIndex = (time) => {
+                const regularIdx = TIME_SLOTS.indexOf(time);
+                if (regularIdx !== -1) return regularIdx;
+                const erIdx = EARLY_RELEASE_TIME_SLOTS.indexOf(time);
+                return erIdx !== -1 ? TIME_SLOTS.length + erIdx : TIME_SLOTS.length + EARLY_RELEASE_TIME_SLOTS.length;
+            };
+
             filtered.sort((a, b) => {
                 if (a.date !== b.date) return a.date < b.date ? -1 : 1;
-                return TIME_SLOTS.indexOf(a.time) - TIME_SLOTS.indexOf(b.time);
+                return timeSlotIndex(a.time) - timeSlotIndex(b.time);
             });
 
             document.getElementById('coverageRecordCount').innerText = filtered.length;
@@ -1675,11 +1855,320 @@ window.signOutUser = async function() {
             showToast('Reset class schedule slots to default template');
         };
 
+        // ===================== EARLY RELEASE SCHEDULE =====================
+
+        async function saveEarlyReleaseDatesCloud() {
+            saveToLocalStorage();
+            if (!currentUser || !db) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'earlyReleaseDates');
+                await setDoc(docRef, { dates: window.earlyReleaseDates });
+            } catch (err) {
+                console.error("Error saving Early Release dates:", err);
+            }
+        }
+
+        async function saveEarlyReleaseSlotCloud(item) {
+            const index = window.earlyReleaseData.findIndex(s => String(s.id) === String(item.id));
+            if (index !== -1) {
+                window.earlyReleaseData[index] = item;
+            } else {
+                window.earlyReleaseData.push(item);
+            }
+            saveToLocalStorage();
+            renderEarlyReleaseSchedule();
+
+            if (!currentUser || !db) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'earlyRelease', String(item.id));
+                await setDoc(docRef, item, { merge: true });
+            } catch (err) {
+                console.error("Error saving Early Release slot:", err);
+            }
+        }
+
+        async function deleteEarlyReleaseSlotCloud(id) {
+            window.earlyReleaseData = window.earlyReleaseData.filter(s => String(s.id) !== String(id));
+            saveToLocalStorage();
+            renderEarlyReleaseSchedule();
+
+            if (!currentUser || !db) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'earlyRelease', String(id));
+                await deleteDoc(docRef);
+            } catch (err) {
+                console.error("Error deleting Early Release slot:", err);
+            }
+        }
+
+        window.populateEarlyReleaseDateSelector = function() {
+            const selector = document.getElementById('earlyReleaseDateSelector');
+            if (!selector) return;
+
+            const sortedDates = [...window.earlyReleaseDates].sort();
+
+            if (sortedDates.length === 0) {
+                selector.innerHTML = `<option value="">No Early Release dates marked yet</option>`;
+                window.selectedEarlyReleaseDate = null;
+                return;
+            }
+
+            if (!window.selectedEarlyReleaseDate || !sortedDates.includes(window.selectedEarlyReleaseDate)) {
+                window.selectedEarlyReleaseDate = sortedDates[0];
+            }
+
+            const formatDate = (d) => {
+                const [y, m, day] = d.split('-').map(Number);
+                return new Date(y, m - 1, day).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+            };
+
+            selector.innerHTML = sortedDates.map(d => `<option value="${d}">${formatDate(d)}</option>`).join('');
+            selector.value = window.selectedEarlyReleaseDate;
+        };
+
+        window.addEarlyReleaseDate = function() {
+            const input = document.getElementById('newEarlyReleaseDate');
+            if (!input || !input.value) {
+                showToast('Please choose a date first');
+                return;
+            }
+            const dateStr = input.value;
+
+            if (window.earlyReleaseDates.includes(dateStr)) {
+                showToast('That date is already marked as Early Release');
+                return;
+            }
+
+            const [y, m, day] = dateStr.split('-').map(Number);
+            const dayOfWeek = new Date(y, m - 1, day).getDay(); // 0=Sun, 3=Wed
+            if (dayOfWeek !== 3) {
+                const proceed = confirm('That date is not a Wednesday. Mark it as an Early Release date anyway?');
+                if (!proceed) return;
+            }
+
+            window.earlyReleaseDates.push(dateStr);
+            window.selectedEarlyReleaseDate = dateStr;
+            saveEarlyReleaseDatesCloud();
+            populateEarlyReleaseDateSelector();
+            renderEarlyReleaseSchedule();
+            input.value = '';
+            showToast('Date marked as Early Release');
+        };
+
+        window.deleteEarlyReleaseDate = function() {
+            const dateStr = window.selectedEarlyReleaseDate;
+            if (!dateStr) {
+                showToast('No date selected to remove');
+                return;
+            }
+            const slotCount = window.earlyReleaseData.filter(item => item.date === dateStr).length;
+            const confirmMsg = slotCount > 0
+                ? `Remove ${dateStr} as an Early Release date? This will also delete its ${slotCount} assigned slot(s).`
+                : `Remove ${dateStr} as an Early Release date?`;
+            if (!confirm(confirmMsg)) return;
+
+            window.earlyReleaseDates = window.earlyReleaseDates.filter(d => d !== dateStr);
+            saveEarlyReleaseDatesCloud();
+
+            const slotsToDelete = window.earlyReleaseData.filter(item => item.date === dateStr);
+            slotsToDelete.forEach(item => deleteEarlyReleaseSlotCloud(item.id));
+
+            window.selectedEarlyReleaseDate = null;
+            populateEarlyReleaseDateSelector();
+            renderEarlyReleaseSchedule();
+            showToast('Early Release date removed');
+        };
+
+        window.openEarlyReleaseModal = function(time, id = null) {
+            if (!window.selectedEarlyReleaseDate) {
+                showToast('Please mark and select an Early Release date first');
+                return;
+            }
+            document.getElementById('earlyReleaseForm').reset();
+            document.getElementById('erModalId').value = '';
+            document.getElementById('erModalDate').value = window.selectedEarlyReleaseDate;
+            document.getElementById('erModalTime').value = time;
+
+            const formatDate = (d) => {
+                const [y, m, day] = d.split('-').map(Number);
+                return new Date(y, m - 1, day).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+            };
+            document.getElementById('erModalContext').innerHTML =
+                `<i class="fa-solid fa-calendar-day mr-1 text-slate-400"></i> ${formatDate(window.selectedEarlyReleaseDate)} &nbsp;•&nbsp; <i class="fa-solid fa-clock mr-1 text-slate-400"></i> ${time}`;
+
+            const title = document.getElementById('earlyReleaseModalTitle');
+
+            if (id) {
+                const item = window.earlyReleaseData.find(s => String(s.id) === String(id));
+                if (item) {
+                    title.innerText = 'Edit Early Release Slot';
+                    document.getElementById('erModalId').value = item.id;
+                    document.getElementById('erModalOwner').value = item.personOwner;
+                    document.getElementById('erModalGrade').value = item.grade;
+                    document.getElementById('erModalClassCode').value = item.classCode;
+                }
+            } else {
+                title.innerText = 'Add Early Release Slot';
+            }
+
+            document.getElementById('earlyReleaseModal').classList.remove('hidden');
+        };
+
+        window.closeEarlyReleaseModal = function() {
+            document.getElementById('earlyReleaseModal').classList.add('hidden');
+        };
+
+        window.handleEarlyReleaseSubmit = function(e) {
+            e.preventDefault();
+            const idVal = document.getElementById('erModalId').value;
+            const date = document.getElementById('erModalDate').value;
+            const time = document.getElementById('erModalTime').value;
+            const personOwner = document.getElementById('erModalOwner').value;
+            const grade = document.getElementById('erModalGrade').value;
+            const classCode = document.getElementById('erModalClassCode').value;
+
+            const newItem = {
+                id: idVal ? idVal : String(Date.now()),
+                date, time, personOwner, grade, classCode
+            };
+
+            saveEarlyReleaseSlotCloud(newItem);
+            window.closeEarlyReleaseModal();
+            showToast('Early Release slot saved');
+        };
+
+        window.deleteEarlyReleaseSlot = function(id) {
+            deleteEarlyReleaseSlotCloud(id);
+            showToast('Early Release slot removed');
+        };
+
+        function renderEarlyReleaseSchedule() {
+            const tbody = document.getElementById('earlyReleaseScheduleBody');
+            if (!tbody) return;
+
+            if (!window.selectedEarlyReleaseDate) {
+                tbody.innerHTML = `<tr><td colspan="2" class="p-8 text-center text-slate-400 text-xs">No Early Release date selected. Mark a date above to get started.</td></tr>`;
+                return;
+            }
+
+            const dateStr = window.selectedEarlyReleaseDate;
+
+            tbody.innerHTML = EARLY_RELEASE_TIME_SLOTS.map(time => {
+                const slotsForTime = window.earlyReleaseData.filter(item => item.date === dateStr && item.time === time);
+
+                const chips = BUILDER_PERSON_CONFIG.map(cfg => {
+                    const existing = slotsForTime.find(s => s.personOwner === cfg.owner);
+                    if (!existing) {
+                        return `
+                            <button onclick="openEarlyReleaseModal('${time}')" class="editor-only w-full text-left p-1 rounded border border-dashed border-slate-200 ${cfg.dashHover} text-[10px] text-slate-400 ${cfg.dashText} flex items-center justify-between transition">
+                                <span>+ ${cfg.short} Class</span>
+                                <i class="fa-solid fa-plus text-[9px]"></i>
+                            </button>
+                        `;
+                    }
+
+                    const paraRecord = window.coverageData.find(c => c.slotType === 'earlyRelease' && c.scheduleId === existing.id);
+
+                    if (paraRecord) {
+                        return `
+                            <div class="p-1.5 rounded bg-slate-100 border border-slate-300 text-[11px] flex justify-between items-center gap-2">
+                                <div>
+                                    <span class="font-bold text-slate-800">${cfg.short}: ${existing.classCode}</span>
+                                    <span class="text-[10px] text-slate-600 ml-1">Para: ${paraRecord.status}</span>
+                                </div>
+                                <button onclick="openParaModal('${paraRecord.id}')" class="editor-only text-slate-500 hover:text-slate-800 p-0.5" title="Edit Para Record"><i class="fa-solid fa-pen-to-square text-[10px]"></i></button>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="p-1.5 rounded ${cfg.bg} border ${cfg.border} text-[11px] flex justify-between items-center gap-2">
+                            <div>
+                                <span class="font-bold ${cfg.text}">${cfg.short}: ${existing.classCode}</span>
+                                <span class="text-[10px] ${cfg.subtext} ml-1">(Gr. ${existing.grade})</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="openEarlyReleaseModal('${time}', '${existing.id}')" class="editor-only ${cfg.iconColor} p-0.5" title="Edit ${cfg.short} Slot"><i class="fa-solid fa-pen-to-square text-[10px]"></i></button>
+                                <button onclick="deleteEarlyReleaseSlot('${existing.id}')" class="editor-only text-slate-400 hover:text-rose-600 p-0.5" title="Delete ${cfg.short} Slot"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <tr>
+                        <td class="p-3 font-semibold text-xs text-slate-500 border-r bg-slate-50/50 align-top">${time}</td>
+                        <td class="p-2">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1.5">
+                                ${chips}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
                 const DAY_ORDER = { Monday: 0, Tuesday: 1, Wednesday: 2, Thursday: 3, Friday: 4 };
+
+        function populateParaErDateDropdown(selectedDate) {
+            const select = document.getElementById('modalErDate');
+            if (!select) return;
+            const sorted = [...window.earlyReleaseDates].sort();
+            if (sorted.length === 0) {
+                select.innerHTML = `<option value="">No Early Release dates marked yet</option>`;
+                return;
+            }
+            const formatDate = (d) => {
+                const [y, m, day] = d.split('-').map(Number);
+                return new Date(y, m - 1, day).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+            };
+            select.innerHTML = sorted.map(d => `<option value="${d}">${formatDate(d)}</option>`).join('');
+            if (selectedDate) select.value = selectedDate;
+        }
+
+        window.setParaScheduleType = function(type) {
+            document.getElementById('modalScheduleType').value = type;
+            const isRegular = type === 'regular';
+
+            document.getElementById('btn-para-regular').className = isRegular
+                ? 'flex-1 px-3 py-1.5 rounded-md bg-white shadow-xs text-indigo-700 font-bold'
+                : 'flex-1 px-3 py-1.5 rounded-md hover:text-slate-900 font-normal';
+            document.getElementById('btn-para-earlyrelease').className = !isRegular
+                ? 'flex-1 px-3 py-1.5 rounded-md bg-white shadow-xs text-indigo-700 font-bold'
+                : 'flex-1 px-3 py-1.5 rounded-md hover:text-slate-900 font-normal';
+
+            document.getElementById('regularDateField').classList.toggle('hidden', !isRegular);
+            document.getElementById('earlyReleaseDateField').classList.toggle('hidden', isRegular);
+
+            const label = document.getElementById('modalClassLabel');
+            if (label) label.innerText = isRegular ? 'Class Slot (Person, Class, Day & Time)' : 'Early Release Class Slot';
+
+            if (!isRegular) populateParaErDateDropdown();
+            populateParaClassDropdown();
+        };
 
         function populateParaClassDropdown(selectedScheduleId) {
             const select = document.getElementById('modalClass');
             if (!select) return;
+            const scheduleType = document.getElementById('modalScheduleType')?.value || 'regular';
+
+            if (scheduleType === 'earlyRelease') {
+                const erDate = document.getElementById('modalErDate')?.value || '';
+                const sorted = window.earlyReleaseData
+                    .filter(item => item.date === erDate)
+                    .sort((a, b) => EARLY_RELEASE_TIME_SLOTS.indexOf(a.time) - EARLY_RELEASE_TIME_SLOTS.indexOf(b.time));
+
+                if (sorted.length === 0) {
+                    select.innerHTML = `<option value="">No Early Release slots assigned for this date</option>`;
+                    return;
+                }
+                select.innerHTML = sorted.map(item =>
+                    `<option value="${item.id}">${item.personOwner}: ${item.classCode} (Gr. ${item.grade}) — ${item.time}</option>`
+                ).join('');
+                if (selectedScheduleId) select.value = selectedScheduleId;
+                return;
+            }
+
             const sorted = [...window.scheduleData].sort((a, b) => {
                 if (DAY_ORDER[a.day] !== DAY_ORDER[b.day]) return DAY_ORDER[a.day] - DAY_ORDER[b.day];
                 return TIME_SLOTS.indexOf(a.time) - TIME_SLOTS.indexOf(b.time);
@@ -1693,19 +2182,28 @@ window.signOutUser = async function() {
         window.openParaModal = function(id = null) {
             document.getElementById('paraForm').reset();
             document.getElementById('modalParaId').value = '';
-            populateParaClassDropdown();
+            window.setParaScheduleType('regular');
 
             if (id) {
                 const item = window.coverageData.find(c => String(c.id) === String(id));
                 if (item) {
                     document.getElementById('modalParaId').value = item.id;
                     document.getElementById('modalTeacher').value = item.teacher;
-                    document.getElementById('modalDate').value = item.date;
                     document.getElementById('modalReason').value = item.reason;
                     document.getElementById('modalPara').value = item.para || '';
                     document.getElementById('modalStatus').value = item.status;
                     document.getElementById('modalNotes').value = item.notes || '';
-                    if (item.scheduleId) document.getElementById('modalClass').value = item.scheduleId;
+
+                    const slotType = item.slotType === 'earlyRelease' ? 'earlyRelease' : 'regular';
+                    window.setParaScheduleType(slotType);
+
+                    if (slotType === 'earlyRelease') {
+                        populateParaErDateDropdown(item.date);
+                        populateParaClassDropdown(item.scheduleId);
+                    } else {
+                        document.getElementById('modalDate').value = item.date;
+                        if (item.scheduleId) document.getElementById('modalClass').value = item.scheduleId;
+                    }
                 }
             }
 
@@ -1720,31 +2218,56 @@ window.signOutUser = async function() {
             e.preventDefault();
             const idVal = document.getElementById('modalParaId').value;
             const teacher = document.getElementById('modalTeacher').value;
-            const date = document.getElementById('modalDate').value;
-            const scheduleId = document.getElementById('modalClass').value;
+            const scheduleType = document.getElementById('modalScheduleType').value;
+            const selectedId = document.getElementById('modalClass').value;
             const reason = document.getElementById('modalReason').value;
             const para = document.getElementById('modalPara').value;
             const status = document.getElementById('modalStatus').value;
             const notes = document.getElementById('modalNotes').value;
 
-            const scheduleItem = window.scheduleData.find(s => String(s.id) === String(scheduleId));
-            if (!scheduleItem) {
-                showToast('Please select a valid class slot');
-                return;
-            }
+            let newRecord;
 
-            const newRecord = {
-                id: idVal ? idVal : ('COV-' + Math.floor(1000 + Math.random() * 9000)),
-                scheduleId: scheduleItem.id,
-                date,
-                time: scheduleItem.time,
-                day: scheduleItem.day,
-                teacher,
-                classCode: scheduleItem.classCode,
-                grade: scheduleItem.grade,
-                personOwner: scheduleItem.personOwner,
-                reason, para, status, notes
-            };
+            if (scheduleType === 'earlyRelease') {
+                const erDate = document.getElementById('modalErDate').value;
+                const erItem = window.earlyReleaseData.find(s => String(s.id) === String(selectedId));
+                if (!erDate || !erItem) {
+                    showToast('Please select a valid Early Release date and class slot');
+                    return;
+                }
+                newRecord = {
+                    id: idVal ? idVal : ('COV-' + Math.floor(1000 + Math.random() * 9000)),
+                    scheduleId: erItem.id,
+                    slotType: 'earlyRelease',
+                    date: erDate,
+                    time: erItem.time,
+                    day: 'Wednesday',
+                    teacher,
+                    classCode: erItem.classCode,
+                    grade: erItem.grade,
+                    personOwner: erItem.personOwner,
+                    reason, para, status, notes
+                };
+            } else {
+                const date = document.getElementById('modalDate').value;
+                const scheduleItem = window.scheduleData.find(s => String(s.id) === String(selectedId));
+                if (!date || !scheduleItem) {
+                    showToast('Please select a date and a valid class slot');
+                    return;
+                }
+                newRecord = {
+                    id: idVal ? idVal : ('COV-' + Math.floor(1000 + Math.random() * 9000)),
+                    scheduleId: scheduleItem.id,
+                    slotType: 'regular',
+                    date,
+                    time: scheduleItem.time,
+                    day: scheduleItem.day,
+                    teacher,
+                    classCode: scheduleItem.classCode,
+                    grade: scheduleItem.grade,
+                    personOwner: scheduleItem.personOwner,
+                    reason, para, status, notes
+                };
+            }
 
             saveCoverageItemCloud(newRecord);
             window.closeParaModal();
